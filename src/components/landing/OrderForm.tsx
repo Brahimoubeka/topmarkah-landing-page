@@ -111,8 +111,15 @@ export function OrderForm({ offers, wilayas, deliveryPrices, defaultCompanyId }:
                   className="sr-only" 
                 />
                 <div className="flex justify-between items-start mb-2">
-                  <span className="font-bold text-gray-900 leading-tight">{offer.name}</span>
-                  {selectedOffer === offer.id && <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />}
+                  <div className="flex items-center gap-3">
+                    {offer.image_url && (
+                      <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-gray-100">
+                        <img src={offer.image_url} alt={offer.name} className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                    <span className="font-bold text-gray-900 leading-tight">{offer.name}</span>
+                  </div>
+                  {selectedOffer === offer.id && <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-1" />}
                 </div>
                 
                 <div className="flex justify-between items-end mt-auto pt-4">

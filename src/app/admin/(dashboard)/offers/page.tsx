@@ -30,6 +30,9 @@ export default async function OffersPage() {
         <table className="min-w-full divide-y divide-gray-300">
           <thead>
             <tr>
+              <th scope="col" className="w-16 py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
+                Image
+              </th>
               <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
                 Name
               </th>
@@ -51,6 +54,17 @@ export default async function OffersPage() {
             {offers && offers.length > 0 ? (
               offers.map((offer) => (
                 <tr key={offer.id}>
+                  <td className="whitespace-nowrap py-4 pl-4 pr-3 sm:pl-6">
+                    {offer.image_url ? (
+                      <div className="h-10 w-10 shrink-0 rounded-md bg-gray-100 overflow-hidden">
+                        <img src={offer.image_url} alt="" className="h-full w-full object-cover" />
+                      </div>
+                    ) : (
+                      <div className="h-10 w-10 shrink-0 rounded-md bg-gray-100 flex items-center justify-center text-gray-400">
+                        <span className="text-xs">No img</span>
+                      </div>
+                    )}
+                  </td>
                   <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                     {offer.name}
                   </td>
@@ -85,7 +99,7 @@ export default async function OffersPage() {
               ))
             ) : (
               <tr>
-                <td colSpan={5} className="py-8 text-center text-sm text-gray-500">
+                <td colSpan={6} className="py-8 text-center text-sm text-gray-500">
                   No offers found. Click "Add Offer" to create one.
                 </td>
               </tr>

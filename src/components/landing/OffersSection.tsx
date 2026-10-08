@@ -28,8 +28,13 @@ export function OffersSection({ section, offers }: any) {
             {offers.map((offer: any) => (
               <div key={offer.id} className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 relative overflow-hidden transition-all hover:shadow-lg hover:border-blue-200">
                 {offer.discount > 0 && (
-                  <div className="absolute top-4 right-4 bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-bold">
+                  <div className="absolute top-4 right-4 bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-bold z-10">
                     تخفيض {offer.discount}%
+                  </div>
+                )}
+                {offer.image_url && (
+                  <div className="w-full h-48 mb-6 rounded-2xl overflow-hidden bg-gray-100 relative -mt-4">
+                    <img src={offer.image_url} alt={offer.name} className="w-full h-full object-cover" />
                   </div>
                 )}
                 <h3 className="text-xl font-bold text-gray-900 mb-2">{offer.name}</h3>
