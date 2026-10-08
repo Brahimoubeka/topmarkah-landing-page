@@ -18,8 +18,8 @@ const JPEG_QUALITY = 0.82
 const productSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   slug: z.string().min(1, 'Slug is required').regex(/^[a-z0-9-]+$/, 'Invalid slug format (lowercase letters, numbers, and hyphens only)'),
-  price: z.coerce.number().min(0, 'Price must be positive'),
-  old_price: z.coerce.number().min(0).optional().or(z.literal(0)),
+  price: z.number().min(0, 'Price must be positive'),
+  old_price: z.number().min(0).optional(),
   short_description: z.string().optional(),
   description: z.string().optional(),
   benefits: z.string().optional(),
@@ -113,8 +113,8 @@ export function ProductForm({ initialData, existingMedia = [] }: {
   )
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const form = useForm<ProductValues>({
-    resolver: zodResolver(productSchema),
+  const form = useForm<any>({
+    resolver: zodResolver(productSchema) as any,
     defaultValues: initialData || {
       name: '',
       slug: '',
@@ -179,7 +179,7 @@ export function ProductForm({ initialData, existingMedia = [] }: {
   }
 
   // ── Submit ────────────────────────────────────────────────────────────────
-  async function onSubmit(data: ProductValues) {
+  async function onSubmit(data: any) {
     setIsLoading(true)
     setError(null)
     const supabase = createClient()
@@ -376,24 +376,24 @@ export function ProductForm({ initialData, existingMedia = [] }: {
           <div className="space-y-2">
             <Label htmlFor="name">Product Name *</Label>
             <Input id="name" {...form.register('name')} placeholder="e.g. Premium Shampoo" />
-            {form.formState.errors.name && <p className="text-sm text-red-500">{form.formState.errors.name.message}</p>}
+            {form.formState.errors.name?.message && <p className="text-sm text-red-500">{form.formState.errors.name.message as string}</p>}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="slug">Slug (URL snippet) *</Label>
             <Input id="slug" {...form.register('slug')} placeholder="e.g. premium-shampoo" dir="ltr" />
-            {form.formState.errors.slug && <p className="text-sm text-red-500">{form.formState.errors.slug.message}</p>}
+            {form.formState.errors.slug?.message && <p className="text-sm text-red-500">{form.formState.errors.slug.message as string}</p>}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="price">Price (DA) *</Label>
-            <Input id="price" type="number" step="0.01" {...form.register('price')} />
-            {form.formState.errors.price && <p className="text-sm text-red-500">{form.formState.errors.price.message}</p>}
+            <Input id="price" type="number" step="0.01" {...form.register('price', { valueAsNumber: true })} />
+            {form.formState.errors.price?.message && <p className="text-sm text-red-500">{form.formState.errors.price.message as string}</p>}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="old_price">Old Price (DA) [Optional]</Label>
-            <Input id="old_price" type="number" step="0.01" {...form.register('old_price')} />
+            <Input id="old_price" type="number" step="0.01" {...form.register('old_price', { valueAsNumber: true })} />
           </div>
         </div>
 

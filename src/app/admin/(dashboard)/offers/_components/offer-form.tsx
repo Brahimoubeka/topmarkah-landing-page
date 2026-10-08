@@ -14,12 +14,12 @@ const offerSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   short_description: z.string().optional(),
   full_description: z.string().optional(),
-  price: z.coerce.number().min(0, 'Price must be positive'),
-  old_price: z.coerce.number().min(0).optional().or(z.literal(0)),
-  discount: z.coerce.number().min(0).max(100).optional().or(z.literal(0)),
-  quantity_included: z.coerce.number().min(1, 'Quantity must be at least 1').default(1),
+  price: z.number().min(0, 'Price must be positive'),
+  old_price: z.number().min(0).optional(),
+  discount: z.number().min(0).max(100).optional(),
+  quantity_included: z.number().min(1, 'Quantity must be at least 1').default(1),
   gifts: z.string().optional(),
-  display_order: z.coerce.number().default(0),
+  display_order: z.number().default(0),
   is_active: z.boolean().default(true),
 })
 
@@ -30,8 +30,8 @@ export function OfferForm({ initialData }: { initialData?: any }) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   
-  const form = useForm<OfferValues>({
-    resolver: zodResolver(offerSchema),
+  const form = useForm<any>({
+    resolver: zodResolver(offerSchema) as any,
     defaultValues: initialData || {
       name: '',
       price: 0,
@@ -46,7 +46,7 @@ export function OfferForm({ initialData }: { initialData?: any }) {
     },
   })
 
-  async function onSubmit(data: OfferValues) {
+  async function onSubmit(data: any) {
     setIsLoading(true)
     setError(null)
     
@@ -91,34 +91,34 @@ export function OfferForm({ initialData }: { initialData?: any }) {
         <div className="space-y-2">
           <Label htmlFor="name">Offer Name * (e.g. "2 Shampoos + Gift")</Label>
           <Input id="name" {...form.register('name')} />
-          {form.formState.errors.name && <p className="text-sm text-red-500">{form.formState.errors.name.message}</p>}
+          {form.formState.errors.name?.message && <p className="text-sm text-red-500">{form.formState.errors.name.message as string}</p>}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="quantity_included">Quantity Included *</Label>
-          <Input id="quantity_included" type="number" min="1" {...form.register('quantity_included')} />
-          {form.formState.errors.quantity_included && <p className="text-sm text-red-500">{form.formState.errors.quantity_included.message}</p>}
+          <Input id="quantity_included" type="number" min="1" {...form.register('quantity_included', { valueAsNumber: true })} />
+          {form.formState.errors.quantity_included?.message && <p className="text-sm text-red-500">{form.formState.errors.quantity_included.message as string}</p>}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="price">Offer Price (DA) *</Label>
-          <Input id="price" type="number" step="0.01" {...form.register('price')} />
-          {form.formState.errors.price && <p className="text-sm text-red-500">{form.formState.errors.price.message}</p>}
+          <Input id="price" type="number" step="0.01" {...form.register('price', { valueAsNumber: true })} />
+          {form.formState.errors.price?.message && <p className="text-sm text-red-500">{form.formState.errors.price.message as string}</p>}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="old_price">Old Price (DA) [Optional]</Label>
-          <Input id="old_price" type="number" step="0.01" {...form.register('old_price')} />
+          <Input id="old_price" type="number" step="0.01" {...form.register('old_price', { valueAsNumber: true })} />
         </div>
         
         <div className="space-y-2">
           <Label htmlFor="discount">Discount Percentage (%) [Optional]</Label>
-          <Input id="discount" type="number" min="0" max="100" {...form.register('discount')} />
+          <Input id="discount" type="number" min="0" max="100" {...form.register('discount', { valueAsNumber: true })} />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="display_order">Display Order</Label>
-          <Input id="display_order" type="number" {...form.register('display_order')} />
+          <Input id="display_order" type="number" {...form.register('display_order', { valueAsNumber: true })} />
         </div>
       </div>
 
