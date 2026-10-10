@@ -34,7 +34,7 @@ export function OffersSection({ section, offers }: any) {
                 )}
                 {offer.image_url && (
                   <div className="w-full h-48 mb-6 rounded-2xl overflow-hidden bg-gray-100 relative -mt-4">
-                    <img src={offer.image_url} alt={offer.name} className="w-full h-full object-cover" />
+                    <img src={offer.image_url} alt={offer.name} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                   </div>
                 )}
                 <h3 className="text-xl font-bold text-gray-900 mb-2">{offer.name}</h3>

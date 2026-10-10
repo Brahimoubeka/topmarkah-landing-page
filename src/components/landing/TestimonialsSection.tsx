@@ -22,7 +22,7 @@ export function TestimonialsSection({ section, testimonials }: any) {
                <div key={t.id} className="bg-gray-50 p-6 rounded-2xl flex flex-col h-full">
                  {t.image_url && (
                    <div className="mb-4 rounded-xl overflow-hidden bg-white border border-gray-100 flex justify-center p-2">
-                     <img src={t.image_url} alt={t.customer_name} className="max-h-64 w-auto object-contain rounded-lg" />
+                     <img src={t.image_url} alt={t.customer_name} className="max-h-64 w-auto object-contain rounded-lg" loading="lazy" decoding="async" />
                    </div>
                  )}
                  <div className="flex text-yellow-400 mb-4">

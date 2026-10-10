@@ -24,6 +24,8 @@ function ImageSlideshow({ images }: { images: string[] }) {
           src={images[current]}
           alt={`Product ${current + 1}`}
           className="w-full h-full object-cover transition-opacity duration-300"
+          fetchPriority="high"
+          decoding="async"
         />
         {images.length > 1 && (
           <>
@@ -56,7 +58,7 @@ function ImageSlideshow({ images }: { images: string[] }) {
                 i === current ? 'border-blue-500 scale-105 shadow-md' : 'border-gray-200 opacity-60 hover:opacity-90'
               }`}
             >
-              <img src={src} alt={`Thumb ${i + 1}`} className="w-full h-full object-cover" />
+              <img src={src} alt={`Thumb ${i + 1}`} className="w-full h-full object-cover" loading="lazy" decoding="async" />
             </button>
           ))}
         </div>

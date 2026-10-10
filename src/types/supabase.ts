@@ -217,6 +217,7 @@ export interface Database {
           facebook: string | null
           instagram: string | null
           tiktok: string | null
+          meta_pixel_id: string | null
           address: string | null
           currency: string | null
           primary_color: string | null
@@ -241,6 +242,7 @@ export interface Database {
           facebook?: string | null
           instagram?: string | null
           tiktok?: string | null
+          meta_pixel_id?: string | null
           address?: string | null
           currency?: string | null
           primary_color?: string | null

@@ -172,6 +172,25 @@ export function SettingsForm({ initialSettings }: { initialSettings: any }) {
           </CardContent>
         </Card>
 
+        {/* Marketing Integrations */}
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2"><Globe className="w-5 h-5 text-gray-500" /> Marketing Integrations</CardTitle>
+            <p className="text-sm text-gray-500">Add tracking codes like Meta Pixel to monitor ad performance</p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2 max-w-xl">
+              <Label>Meta Pixel ID (Facebook Pixel)</Label>
+              <Input 
+                value={settings.meta_pixel_id || ''} 
+                onChange={(e) => updateField('meta_pixel_id', e.target.value)} 
+                placeholder="e.g. 123456789012345" dir="ltr"
+              />
+              <p className="text-xs text-gray-400">Enter just the ID, we will automatically inject the code into your landing page.</p>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Design Settings */}
         <Card className="md:col-span-2">
           <CardHeader>

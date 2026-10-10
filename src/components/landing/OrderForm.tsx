@@ -114,7 +114,7 @@ export function OrderForm({ offers, wilayas, deliveryPrices, defaultCompanyId }:
                   <div className="flex items-center gap-3">
                     {offer.image_url && (
                       <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-gray-100">
-                        <img src={offer.image_url} alt={offer.name} className="w-full h-full object-cover" />
+                        <img src={offer.image_url} alt={offer.name} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                       </div>
                     )}
                     <span className="font-bold text-gray-900 leading-tight">{offer.name}</span>

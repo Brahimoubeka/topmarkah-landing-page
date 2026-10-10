@@ -9,6 +9,9 @@ import { FaqSection } from '@/components/landing/FaqSection'
 import { BenefitsSection } from '@/components/landing/BenefitsSection'
 import { DeliverySection } from '@/components/landing/DeliverySection'
 import { StickyOrderButton } from '@/components/landing/StickyOrderButton'
+import { Header } from '@/components/landing/Header'
+import { ScrollToTopButton } from '@/components/landing/ScrollToTopButton'
+import Script from 'next/script'
 
 export const revalidate = 0 // Disable cache for development
 
@@ -113,6 +116,49 @@ export default async function LandingPage() {
         backgroundColor: 'var(--background-color)',
       } as React.CSSProperties}
     >
+      {settings?.meta_pixel_id && (
+        <Script id="meta-pixel" strategy="afterInteractive">
+          {`
+            !function(f,b,e,v,n,t,s)
+            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+            n.queue=[];t=b.createElement(e);t.async=!0;
+            t.src=v;s=b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t,s)}(window, document,'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+            fbq('init', '${settings.meta_pixel_id}');
+            fbq('track', 'PageView');
+          `}
+        </Script>
+      )}
+
+      {/* ── TOP RED BAR ── */}
+      {settings?.whatsapp && (
+        <div className="sticky top-0 w-full z-50 bg-red-600 text-white overflow-hidden py-2 text-sm sm:text-base font-bold flex shadow-md" dir="ltr">
+          <div className="animate-marquee">
+            {/* First Half */}
+            <div className="flex shrink-0">
+              {Array(6).fill(0).map((_, i) => (
+                <span key={`first-${i}`} className="mx-4 sm:mx-8">
+                  للطلب عبر الهاتف أو الاستفسار يمكنك التواصل عبر: <span className="text-yellow-300 mx-2 tracking-wider" dir="ltr">{settings.whatsapp}</span>
+                </span>
+              ))}
+            </div>
+            {/* Second Half (Exact Copy) */}
+            <div className="flex shrink-0">
+              {Array(6).fill(0).map((_, i) => (
+                <span key={`second-${i}`} className="mx-4 sm:mx-8">
+                  للطلب عبر الهاتف أو الاستفسار يمكنك التواصل عبر: <span className="text-yellow-300 mx-2 tracking-wider" dir="ltr">{settings.whatsapp}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Header logoUrl={settings?.logo_url} />
+
       {/* ── HERO ── */}
       {isActive('hero') && (
         <HeroSection
@@ -253,6 +299,8 @@ export default async function LandingPage() {
 
       {/* ── STICKY ORDER BUTTON ── */}
       {isActive('order') && <StickyOrderButton />}
+      
+      <ScrollToTopButton />
     </div>
   )
 }
