@@ -17,15 +17,48 @@ export function BenefitsSection({ section, product }: any) {
           <div className="h-1 w-20 bg-primary mx-auto rounded-full mt-4"></div>
         </div>
 
-        <div className="bg-primary/5 p-8 rounded-3xl border border-primary/10">
+        <div className="bg-primary/5 p-8 rounded-3xl border border-primary/10 mb-8">
           <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
             <Star className="w-6 h-6 text-yellow-500 ml-2" /> 
-            أهم الفوائد والمواصفات:
+            أهم الفوائد:
           </h3>
           <p className="whitespace-pre-line text-gray-700 text-lg leading-relaxed text-start">
             {product?.benefits}
           </p>
         </div>
+
+        {product?.description && (
+          <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm mb-8">
+            <h3 className="text-xl font-bold text-gray-900 mb-6">
+              وصف المنتج
+            </h3>
+            <p className="whitespace-pre-line text-gray-700 text-lg leading-relaxed text-start">
+              {product.description}
+            </p>
+          </div>
+        )}
+
+        {product?.specifications && (
+          <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm mb-8">
+            <h3 className="text-xl font-bold text-gray-900 mb-6">
+              المواصفات
+            </h3>
+            <p className="whitespace-pre-line text-gray-700 text-lg leading-relaxed text-start">
+              {product.specifications}
+            </p>
+          </div>
+        )}
+
+        {product?.usage_instructions && (
+          <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm">
+            <h3 className="text-xl font-bold text-gray-900 mb-6">
+              طريقة الاستخدام
+            </h3>
+            <p className="whitespace-pre-line text-gray-700 text-lg leading-relaxed text-start">
+              {product.usage_instructions}
+            </p>
+          </div>
+        )}
       </div>
     </section>
   )

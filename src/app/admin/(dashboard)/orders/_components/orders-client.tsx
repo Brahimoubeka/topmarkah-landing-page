@@ -29,6 +29,19 @@ export function OrdersClient({ initialOrders }: { initialOrders: Order[] }) {
     setUpdating(null)
   }
 
+  async function updateNotes(orderId: string, notes: string) {
+    setUpdating(orderId)
+    const { error } = await supabase
+      .from('orders')
+      .update({ admin_notes: notes })
+      .eq('id', orderId)
+
+    if (!error) {
+      setOrders(orders.map(o => o.id === orderId ? { ...o, admin_notes: notes } : o))
+    }
+    setUpdating(null)
+  }
+
   const filteredOrders = orders.filter(order => {
     const matchesSearch = 
       order.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -235,6 +248,18 @@ Total Order: ${order.total_price} DA`;
                                 <span>{order.total_price} DA</span>
                               </div>
                             </div>
+                          </div>
+                          
+                          {/* Admin Notes */}
+                          <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
+                            <h5 className="text-sm font-bold text-gray-700 mb-3">Admin Notes</h5>
+                            <textarea
+                              className="w-full h-24 p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="Add internal notes about this order..."
+                              defaultValue={order.admin_notes || ''}
+                              onBlur={(e) => updateNotes(order.id, e.target.value)}
+                            />
+                            <p className="text-xs text-gray-400 mt-2">Notes save automatically when you click outside the box.</p>
                           </div>
                           
                         </div>
