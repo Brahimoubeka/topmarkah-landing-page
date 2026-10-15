@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { CheckCircle2, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
+import { CheckCircle2, ChevronLeft, ChevronRight, Sparkles, Truck } from 'lucide-react'
 import { SectionHeading } from './SectionHeading'
 import { parseSectionData, getFontClass } from '@/lib/section-config'
 import { parseOfferData } from '@/lib/offer-helper'
@@ -137,16 +137,24 @@ export function OffersSection({ section, offers }: any) {
                   key={offer.id} 
                   className={`bg-white sm:rounded-3xl border-y sm:border border-gray-200/80 sm:border-gray-100 shadow-sm sm:shadow-md relative overflow-hidden transition-all duration-300 hover:shadow-xl flex flex-col justify-between ${offerFontClass}`}
                 >
-                  {/* Badge with glowing pulse */}
-                  {badgeLabel && (
-                    <div 
-                      className="glow-badge absolute top-3 left-3 text-white font-extrabold px-3.5 py-1 rounded-full text-xs sm:text-sm shadow-lg z-20 flex items-center gap-1 backdrop-blur-sm"
-                      style={{ backgroundColor: customBadgeColor }}
-                    >
-                      <Sparkles className="w-3.5 h-3.5 text-white" />
-                      <span>{badgeLabel}</span>
-                    </div>
-                  )}
+                  {/* Badges */}
+                  <div className="absolute top-3 left-3 z-20 flex flex-col gap-1.5 items-start">
+                    {badgeLabel && (
+                      <div 
+                        className="glow-badge text-white font-extrabold px-3 py-1 rounded-full text-xs sm:text-sm shadow-lg flex items-center gap-1 backdrop-blur-sm"
+                        style={{ backgroundColor: customBadgeColor }}
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-white" />
+                        <span>{badgeLabel}</span>
+                      </div>
+                    )}
+                    {offerData.isFreeDelivery && (
+                      <div className="text-white font-extrabold px-3 py-0.5 rounded-full text-xs shadow-md flex items-center gap-1 bg-emerald-600 backdrop-blur-sm animate-pulse">
+                        <Truck className="w-3.5 h-3.5 text-white" />
+                        <span>توصيل مجاني 🚚</span>
+                      </div>
+                    )}
+                  </div>
 
                   {/* 4:3 Image (full width with 0 margin to screen corners on mobile) */}
                   {offerData.images.length > 0 && (
@@ -188,6 +196,12 @@ export function OffersSection({ section, offers }: any) {
                           <CheckCircle2 className="w-4 h-4 text-emerald-500 ml-2 shrink-0" />
                           <span className="font-medium">الكمية: {offer.quantity_included}</span>
                         </li>
+                        {offerData.isFreeDelivery && (
+                          <li className="flex items-center text-emerald-700 font-bold">
+                            <Truck className="w-4 h-4 text-emerald-600 ml-2 shrink-0" />
+                            <span>توصيل مجاني لجميع الولايات (58 ولاية)</span>
+                          </li>
+                        )}
                         {offer.gifts && (
                           <li className="flex items-center text-gray-700">
                             <CheckCircle2 className="w-4 h-4 text-emerald-500 ml-2 shrink-0" />

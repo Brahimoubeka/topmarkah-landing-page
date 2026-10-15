@@ -6,8 +6,8 @@ import { submitOrder } from '@/app/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { CheckCircle2, Truck, Package, Phone, User, MapPin, ChevronDown, ChevronUp } from 'lucide-react'
-import { getOfferFirstImage } from '@/lib/offer-helper'
+import { CheckCircle2, Truck, Package, Phone, User, MapPin, ChevronDown, ChevronUp, Sparkles, Gift } from 'lucide-react'
+import { getOfferFirstImage, parseOfferData } from '@/lib/offer-helper'
 
 export function OrderForm({ offers, wilayas, deliveryPrices, defaultCompanyId }: any) {
   const [state, formAction, isPending] = useActionState(submitOrder, null)
@@ -35,6 +35,9 @@ export function OrderForm({ offers, wilayas, deliveryPrices, defaultCompanyId }:
     
     // Calculate offer price
     const offer = offers.find((o: any) => o.id === selectedOffer)
+    const offerData = offer ? parseOfferData(offer) : null
+    const isFreeDelivery = offerData ? offerData.isFreeDelivery : false
+
     if (offer) {
       total += offer.price * quantity
     }
@@ -43,8 +46,12 @@ export function OrderForm({ offers, wilayas, deliveryPrices, defaultCompanyId }:
     if (selectedWilaya && defaultCompanyId) {
       const p = deliveryPrices.find((p: any) => p.wilaya_id === selectedWilaya && p.company_id === defaultCompanyId)
       if (p) {
-        delCost = deliveryMethod === 'home' ? p.home_price : p.office_price
-        total += delCost
+        if (!isFreeDelivery) {
+          delCost = deliveryMethod === 'home' ? p.home_price : p.office_price
+          total += delCost
+        } else {
+          delCost = 0
+        }
       }
     }
     
@@ -112,16 +119,50 @@ export function OrderForm({ offers, wilayas, deliveryPrices, defaultCompanyId }:
                   className="sr-only" 
                 />
                 <div className="flex justify-between items-start mb-2">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-start gap-3">
                     {(() => {
                       const offerImg = getOfferFirstImage(offer)
                       return offerImg ? (
-                        <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-gray-100 border border-gray-200">
+                        <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-gray-100 border border-gray-200 mt-0.5">
                           <img src={offerImg} alt={offer.name} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                         </div>
                       ) : null
                     })()}
-                    <span className="font-bold text-gray-900 leading-tight">{offer.name}</span>
+                    <div>
+                      <span className="font-bold text-gray-900 leading-tight block">{offer.name}</span>
+                      
+                      {/* Offer Badges / Tags (Gift, Free Delivery, Discount) */}
+                      <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                        {(() => {
+                          const oData = parseOfferData(offer)
+                          const badgeText = oData.badgeText || (offer.discount > 0 ? `تخفيض ${offer.discount}%` : null)
+                          return (
+                            <>
+                              {oData.isFreeDelivery && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 shadow-xs animate-pulse">
+                                  <Truck className="w-3 h-3 text-emerald-600" />
+                                  <span>توصيل مجاني</span>
+                                </span>
+                              )}
+                              {offer.gifts && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                  <span>🎁 {offer.gifts}</span>
+                                </span>
+                              )}
+                              {badgeText && (
+                                <span 
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold text-white shadow-xs"
+                                  style={oData.badgeColor ? { backgroundColor: oData.badgeColor } : { backgroundColor: '#dc2626' }}
+                                >
+                                  <Sparkles className="w-2.5 h-2.5 text-white" />
+                                  <span>{badgeText}</span>
+                                </span>
+                              )}
+                            </>
+                          )
+                        })()}
+                      </div>
+                    </div>
                   </div>
                   {selectedOffer === offer.id && <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-1" />}
                 </div>
@@ -252,7 +293,21 @@ export function OrderForm({ offers, wilayas, deliveryPrices, defaultCompanyId }:
             {selectedWilaya && (
               <div className="flex justify-between items-center">
                 <span className="text-gray-400">سعر التوصيل</span>
-                <span className="font-medium">{deliveryCost > 0 ? `${deliveryCost} DA` : 'مجاني'}</span>
+                {(() => {
+                  const currentOffer = offers.find((o: any) => o.id === selectedOffer)
+                  const oData = currentOffer ? parseOfferData(currentOffer) : null
+                  if (oData?.isFreeDelivery) {
+                    return (
+                      <span className="font-bold text-emerald-400 flex items-center gap-1.5 bg-emerald-500/10 px-2.5 py-0.5 rounded-lg border border-emerald-500/20 text-xs sm:text-sm animate-pulse">
+                        <Truck className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>مجاني (توصيل مجاني مع هذا العرض)</span>
+                      </span>
+                    )
+                  }
+                  return (
+                    <span className="font-medium">{deliveryCost > 0 ? `${deliveryCost} DA` : 'مجاني'}</span>
+                  )
+                })()}
               </div>
             )}
             <div className="pt-4 mt-2 border-t border-gray-700 flex justify-between items-center">

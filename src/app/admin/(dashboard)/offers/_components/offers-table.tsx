@@ -5,9 +5,9 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-import { ArrowUp, ArrowDown, Edit, Loader2, Check, AlertCircle } from 'lucide-react'
+import { ArrowUp, ArrowDown, Edit, Loader2, Check, AlertCircle, Truck } from 'lucide-react'
 import { DeleteButton } from '@/components/admin/DeleteButton'
-import { getOfferFirstImage } from '@/lib/offer-helper'
+import { getOfferFirstImage, parseOfferData } from '@/lib/offer-helper'
 
 export function OffersTable({ initialOffers }: { initialOffers: any[] }) {
   const router = useRouter()
@@ -195,7 +195,15 @@ export function OffersTable({ initialOffers }: { initialOffers: any[] }) {
                     {/* Name */}
                     <td className="whitespace-nowrap py-3.5 px-3 text-sm font-bold text-gray-900">
                       <div>
-                        {offer.name}
+                        <div className="flex items-center gap-2">
+                          <span>{offer.name}</span>
+                          {parseOfferData(offer).isFreeDelivery && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                              <Truck className="w-3 h-3 text-emerald-600" />
+                              توصيل مجاني
+                            </span>
+                          )}
+                        </div>
                         {offer.gifts && (
                           <div className="text-[11px] font-normal text-emerald-600 mt-0.5">
                             🎁 {offer.gifts}

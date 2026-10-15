@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { createClient } from '@/lib/supabase/client'
-import { ImagePlus, Trash2, Loader2, Palette, Type, Sparkles } from 'lucide-react'
+import { ImagePlus, Trash2, Loader2, Palette, Type, Sparkles, Truck } from 'lucide-react'
 import { parseOfferData, serializeOfferData } from '@/lib/offer-helper'
 import { ARABIC_FONTS, PRESET_COLORS, getFontClass } from '@/lib/section-config'
 
@@ -86,6 +86,7 @@ export function OfferForm({ initialData }: { initialData?: any }) {
   const [badgeColor, setBadgeColor] = useState<string>(initialParsed.badgeColor || '')
   const [badgeText, setBadgeText] = useState<string>(initialParsed.badgeText || '')
   const [buttonText, setButtonText] = useState<string>(initialParsed.buttonText || '')
+  const [isFreeDelivery, setIsFreeDelivery] = useState<boolean>(initialParsed.isFreeDelivery || false)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -191,6 +192,7 @@ export function OfferForm({ initialData }: { initialData?: any }) {
         fontFamily,
         badgeText,
         buttonText,
+        isFreeDelivery,
       })
 
       const submitData = {
@@ -479,6 +481,28 @@ export function OfferForm({ initialData }: { initialData?: any }) {
             rows={4}
             className="flex min-h-[90px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           />
+        </div>
+
+        {/* Free Delivery Option */}
+        <div className="flex items-center justify-between border-2 border-emerald-100 rounded-xl p-4 bg-emerald-50/50">
+          <div className="flex items-center gap-3">
+            <input 
+              type="checkbox" 
+              id="is_free_delivery" 
+              checked={isFreeDelivery} 
+              onChange={e => setIsFreeDelivery(e.target.checked)} 
+              className="h-5 w-5 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-600 cursor-pointer" 
+            />
+            <div>
+              <Label htmlFor="is_free_delivery" className="cursor-pointer font-bold text-sm text-emerald-900 flex items-center gap-1.5">
+                <Truck className="w-4 h-4 text-emerald-600" />
+                <span>توصيل مجاني لهذا العرض (Free Delivery)</span>
+              </Label>
+              <p className="text-xs text-emerald-700 mt-0.5">
+                عند تفعيل هذا الخيار، سيظهر للزبون توصيل مجاني (0 دج) ولن يتم احتساب تكلفة الشحن عند اختيار هذا العرض.
+              </p>
+            </div>
+          </div>
         </div>
 
         <div className="flex items-center gap-4 border rounded-xl p-3.5 bg-gray-50/80">

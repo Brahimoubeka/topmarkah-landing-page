@@ -44,6 +44,37 @@ export async function submitOrder(prevState: any, formData: FormData) {
       return { success: false, message: error.message || 'Failed to place order.' }
     }
 
+    // Check if the selected offer has free delivery
+    try {
+      const { data: offer } = await supabase
+        .from('offers')
+        .select('*')
+        .eq('id', data.offer_id)
+        .single()
+
+      if (offer) {
+        const { parseOfferData } = await import('@/lib/offer-helper')
+        const offerData = parseOfferData(offer)
+        if (offerData.isFreeDelivery && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+          const { createClient: createServiceClient } = await import('@supabase/supabase-js')
+          const adminSupabase = createServiceClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY
+          )
+          const updatedTotal = Number(offer.price) * Number(data.quantity)
+          await adminSupabase
+            .from('orders')
+            .update({
+              delivery_price: 0,
+              total_price: updatedTotal,
+            })
+            .eq('id', orderId)
+        }
+      }
+    } catch (deliveryErr) {
+      console.error('Error checking free delivery for order:', deliveryErr)
+    }
+
     return { success: true, orderId, message: 'Order placed successfully!' }
   } catch (error: any) {
     console.error('Validation error:', error)

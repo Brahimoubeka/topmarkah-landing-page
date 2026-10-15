@@ -8,6 +8,7 @@ export interface OfferParsedData {
   fontFamily: string
   badgeText: string
   buttonText: string
+  isFreeDelivery: boolean
 }
 
 export function parseOfferData(offer: any): OfferParsedData {
@@ -18,6 +19,7 @@ export function parseOfferData(offer: any): OfferParsedData {
   let fontFamily = ''
   let badgeText = ''
   let buttonText = ''
+  let isFreeDelivery = false
 
   if (offer?.image_url) {
     const raw = String(offer.image_url).trim()
@@ -33,6 +35,7 @@ export function parseOfferData(offer: any): OfferParsedData {
         fontFamily = obj.fontFamily || ''
         badgeText = obj.badgeText || ''
         buttonText = obj.buttonText || ''
+        isFreeDelivery = !!(obj.isFreeDelivery || obj.is_free_delivery || obj.freeDelivery || obj.free_delivery)
       } catch {}
     } else if (raw.startsWith('[') && raw.endsWith(']')) {
       try {
@@ -56,6 +59,7 @@ export function parseOfferData(offer: any): OfferParsedData {
   if (offer?.button_color) buttonColor = offer.button_color
   if (offer?.badge_color) badgeColor = offer.badge_color
   if (offer?.font_family) fontFamily = offer.font_family
+  if (offer?.is_free_delivery !== undefined) isFreeDelivery = !!offer.is_free_delivery
 
   return {
     images: images.slice(0, 5), // Limit to 5 images
@@ -65,6 +69,7 @@ export function parseOfferData(offer: any): OfferParsedData {
     fontFamily,
     badgeText,
     buttonText,
+    isFreeDelivery,
   }
 }
 
@@ -76,6 +81,7 @@ export function serializeOfferData(params: {
   fontFamily?: string
   badgeText?: string
   buttonText?: string
+  isFreeDelivery?: boolean
 }): string {
   const images = (params.images || []).filter(Boolean).slice(0, 5)
   return JSON.stringify({
@@ -86,6 +92,7 @@ export function serializeOfferData(params: {
     fontFamily: params.fontFamily || '',
     badgeText: params.badgeText || '',
     buttonText: params.buttonText || '',
+    isFreeDelivery: !!params.isFreeDelivery,
   })
 }
 
