@@ -1,4 +1,21 @@
+@import url('https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Amiri:wght@400;700&family=Cairo:wght@400;600;700;800;900&family=Readex+Pro:wght@400;500;600;700&family=Tajawal:wght@400;500;700;800;900&display=swap');
 @import "tailwindcss";
+
+.font-cairo {
+  font-family: 'Cairo', sans-serif !important;
+}
+.font-tajawal {
+  font-family: 'Tajawal', sans-serif !important;
+}
+.font-almarai {
+  font-family: 'Almarai', sans-serif !important;
+}
+.font-readex {
+  font-family: 'Readex Pro', sans-serif !important;
+}
+.font-amiri {
+  font-family: 'Amiri', serif !important;
+}
 
 :root {
   --background: #ffffff;
@@ -39,4 +56,70 @@ body {
   display: flex;
   width: max-content;
   animation: marquee 15s linear infinite;
+}
+
+/* ── ATTRACTIVE GLOWING EFFECTS ── */
+
+@keyframes title-glow {
+  0%, 100% {
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    filter: drop-shadow(0 0 1px transparent);
+  }
+  50% {
+    text-shadow: 0 0 16px rgba(37, 99, 235, 0.3), 0 0 28px rgba(59, 130, 246, 0.18);
+    filter: drop-shadow(0 2px 8px rgba(37, 99, 235, 0.25));
+  }
+}
+
+.glow-title {
+  animation: title-glow 3.5s ease-in-out infinite;
+  transition: all 0.3s ease;
+}
+
+@keyframes price-glow {
+  0%, 100% {
+    text-shadow: 0 0 4px currentColor;
+  }
+  50% {
+    text-shadow: 0 0 12px currentColor, 0 0 20px currentColor;
+  }
+}
+
+.glow-price {
+  animation: price-glow 2.5s ease-in-out infinite;
+  display: inline-block;
+}
+
+@keyframes button-glow {
+  0%, 100% {
+    box-shadow: 0 4px 16px -2px rgba(37, 99, 235, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 28px 4px rgba(37, 99, 235, 0.65), 0 0 40px 6px rgba(59, 130, 246, 0.35);
+  }
+}
+
+.glow-button {
+  animation: button-glow 2.5s ease-in-out infinite;
+}
+
+@keyframes badge-glow {
+  0%, 100% {
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.45);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(220, 38, 38, 0.8), 0 0 35px rgba(245, 158, 11, 0.5);
+    transform: scale(1.03);
+  }
+}
+
+.glow-badge {
+  animation: badge-glow 2.2s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
 }

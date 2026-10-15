@@ -11,6 +11,8 @@ import { DeliverySection } from '@/components/landing/DeliverySection'
 import { StickyOrderButton } from '@/components/landing/StickyOrderButton'
 import { Header } from '@/components/landing/Header'
 import { ScrollToTopButton } from '@/components/landing/ScrollToTopButton'
+import { SectionHeading } from '@/components/landing/SectionHeading'
+import { parseSectionData } from '@/lib/section-config'
 import Script from 'next/script'
 
 export const revalidate = 0 // Disable cache for development
@@ -51,6 +53,7 @@ export default async function LandingPage() {
     .select('*')
     .eq('is_active', true)
     .order('display_order', { ascending: true })
+    .order('created_at', { ascending: true })
 
   // Fetch wilayas
   const { data: wilayas } = await supabase
@@ -167,37 +170,39 @@ export default async function LandingPage() {
         />
       )}
 
-      {/* ── PRODUCT / BENEFITS ── */}
-      {isActive('product') && product && (
-        <section id="details" className="py-20 bg-gray-50">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="text-center max-w-3xl mx-auto mb-16">
-              <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-4">
-                {sectionMap['product']?.title || product.name}
-              </h2>
-              {sectionMap['product']?.subtitle && (
-                <p className="text-lg text-gray-500 whitespace-pre-line">{sectionMap['product'].subtitle}</p>
-              )}
-              {sectionMap['product']?.content && (
-                <p className="mt-4 text-gray-600 whitespace-pre-line text-start">{sectionMap['product'].content}</p>
-              )}
-              <div className="h-1 w-20 bg-primary mx-auto rounded-full mt-4"></div>
-            </div>
-            <div className="prose prose-lg max-w-4xl mx-auto text-gray-600 whitespace-pre-line text-start">
-              {product.description}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ── BENEFITS ── */}
-      {isActive('benefits') && product?.benefits && (
-        <BenefitsSection section={sectionMap['benefits']} product={product} />
-      )}
-
       {/* ── OFFERS ── */}
       {isActive('offers') && (
         <OffersSection section={sectionMap['offers']} offers={offers || []} />
+      )}
+
+      {/* ── PRODUCT / STORY DETAILS ── */}
+      {isActive('product') && (() => {
+        const parsedProduct = parseSectionData(sectionMap['product'])
+        const contentText = parsedProduct.body || product?.description || ''
+        return (
+          <section id="details" className="py-8 sm:py-12 bg-white">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+              <SectionHeading
+                title={parsedProduct.title || product?.name || 'تفاصيل المنتج'}
+                subtitle={parsedProduct.subtitle}
+                icon={parsedProduct.icon}
+                titleColor={parsedProduct.titleColor}
+                fontSize={parsedProduct.fontSize}
+                fontFamily={parsedProduct.fontFamily}
+              />
+              {contentText && (
+                <div className="max-w-3xl mx-auto text-gray-700 whitespace-pre-line text-start leading-relaxed bg-gray-50/80 p-6 sm:p-8 rounded-2xl sm:rounded-3xl border border-gray-100 shadow-sm text-base sm:text-lg">
+                  {contentText}
+                </div>
+              )}
+            </div>
+          </section>
+        )
+      })()}
+
+      {/* ── BENEFITS ── */}
+      {isActive('benefits') && (
+        <BenefitsSection section={sectionMap['benefits']} product={product} />
       )}
 
       {/* ── TESTIMONIALS ── */}
@@ -220,14 +225,13 @@ export default async function LandingPage() {
 
       {/* ── ORDER FORM ── */}
       {isActive('order') && (
-        <section id="order-form" className="py-24 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
-          <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
+        <section id="order-form" className="py-10 sm:py-14 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 relative z-10">
             {sectionMap['order']?.title && (
-              <div className="text-center mb-10">
-                <h2 className="text-3xl font-bold tracking-tight text-gray-900">{sectionMap['order'].title}</h2>
+              <div className="text-center mb-6 sm:mb-8">
+                <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-gray-900">{sectionMap['order'].title}</h2>
                 {sectionMap['order']?.subtitle && (
-                  <p className="mt-2 text-gray-500">{sectionMap['order'].subtitle}</p>
+                  <p className="mt-2 text-sm sm:text-base text-gray-500">{sectionMap['order'].subtitle}</p>
                 )}
               </div>
             )}

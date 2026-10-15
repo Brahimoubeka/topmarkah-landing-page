@@ -397,46 +397,6 @@ export function ProductForm({ initialData, existingMedia = [] }: {
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="short_description">Short Description</Label>
-          <textarea
-            id="short_description"
-            {...form.register('short_description')}
-            className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            placeholder="A brief summary of the product."
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="description">Full Description</Label>
-          <textarea
-            id="description"
-            {...form.register('description')}
-            className="flex min-h-[120px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            placeholder="Detailed description of the product."
-          />
-        </div>
-
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="benefits">Benefits</Label>
-            <textarea
-              id="benefits"
-              {...form.register('benefits')}
-              className="flex min-h-[100px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="usage_instructions">Usage Instructions</Label>
-            <textarea
-              id="usage_instructions"
-              {...form.register('usage_instructions')}
-              className="flex min-h-[100px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            />
-          </div>
-        </div>
-
         <div className="flex items-center gap-4 border rounded-md p-4 bg-gray-50">
           <div className="flex items-center gap-2">
             <input type="checkbox" id="is_active" {...form.register('is_active')} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600" />
@@ -445,6 +405,13 @@ export function ProductForm({ initialData, existingMedia = [] }: {
           <div className="flex items-center gap-2">
             <input type="checkbox" id="is_featured" {...form.register('is_featured')} className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-600" />
             <Label htmlFor="is_featured">Featured Product</Label>
+          </div>
+        </div>
+
+        <div className="bg-blue-50/70 border border-blue-200/60 rounded-xl p-4 text-xs text-blue-800 flex items-start gap-2.5">
+          <span className="text-base">💡</span>
+          <div>
+            <span className="font-bold">نصوص وصفحات الهبوط:</span> العناوين، نصوص الشرح، الفوائد، والعروض الحصرية يتم التحكم بها وتخصيصها بالكامل (الخطوط، الأحجام، الألوان، والأيقونات) من تبويب <strong>Landing Page</strong>.
           </div>
         </div>
       </div>

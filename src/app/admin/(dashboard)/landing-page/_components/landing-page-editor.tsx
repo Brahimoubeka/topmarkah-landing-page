@@ -10,6 +10,7 @@ import {
   ChevronDown, ChevronUp, Palette, Plus, Trash2, Star,
   ImagePlus, Loader2, X
 } from 'lucide-react'
+import { SectionConfigEditor } from './section-config-editor'
 
 // ── Image compression using Canvas ──────────────────────────────────────────
 const MAX_WIDTH = 1200
@@ -158,6 +159,15 @@ export function LandingPageEditor({ sections, settings, products, testimonials: 
       content: section.content,
     }).eq('id', sectionId)
 
+    setSaving(null)
+  }
+
+  async function saveSectionCustom(sectionId: string, fields: { title: string; subtitle: string; content: string }) {
+    setSaving(sectionId)
+    setLocalSections(prev =>
+      prev.map(s => s.id === sectionId ? { ...s, ...fields } : s)
+    )
+    await supabase.from('landing_sections').update(fields).eq('id', sectionId)
     setSaving(null)
   }
 
@@ -442,50 +452,11 @@ export function LandingPageEditor({ sections, settings, products, testimonials: 
 
                 {/* Section Editor */}
                 {expandedSection === section.id && (
-                  <div className="border-t border-gray-100 px-4 py-4 space-y-4 bg-gray-50/50 rounded-b-xl">
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div className="space-y-1.5">
-                        <Label className="text-xs text-gray-600">Title</Label>
-                        <Input
-                          value={section.title || ''}
-                          onChange={e => updateSection(section.id, 'title', e.target.value)}
-                          placeholder="Section title..."
-                          className="h-9 text-sm"
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-xs text-gray-600">Subtitle</Label>
-                        <Input
-                          value={section.subtitle || ''}
-                          onChange={e => updateSection(section.id, 'subtitle', e.target.value)}
-                          placeholder="Section subtitle..."
-                          className="h-9 text-sm"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label className="text-xs text-gray-600">Content / Extra Text</Label>
-                      <textarea
-                        value={section.content || ''}
-                        onChange={e => updateSection(section.id, 'content', e.target.value)}
-                        placeholder="Additional content or description..."
-                        className="flex min-h-[80px] w-full rounded-md border border-input bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                      />
-                    </div>
-
-                    <div className="flex justify-end">
-                      <Button
-                        size="sm"
-                        disabled={saving === section.id}
-                        onClick={() => saveSection(section.id)}
-                        className="gap-2"
-                      >
-                        <Save className="w-4 h-4" />
-                        {saving === section.id ? 'Saving...' : 'Save Section'}
-                      </Button>
-                    </div>
-                  </div>
+                  <SectionConfigEditor
+                    section={section}
+                    saving={saving === section.id}
+                    onSave={(fields) => saveSectionCustom(section.id, fields)}
+                  />
                 )}
               </div>
             ))}

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { CheckCircle2, Truck, Package, Phone, User, MapPin, ChevronDown, ChevronUp } from 'lucide-react'
+import { getOfferFirstImage } from '@/lib/offer-helper'
 
 export function OrderForm({ offers, wilayas, deliveryPrices, defaultCompanyId }: any) {
   const [state, formAction, isPending] = useActionState(submitOrder, null)
@@ -112,11 +113,14 @@ export function OrderForm({ offers, wilayas, deliveryPrices, defaultCompanyId }:
                 />
                 <div className="flex justify-between items-start mb-2">
                   <div className="flex items-center gap-3">
-                    {offer.image_url && (
-                      <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-gray-100">
-                        <img src={offer.image_url} alt={offer.name} className="w-full h-full object-cover" loading="lazy" decoding="async" />
-                      </div>
-                    )}
+                    {(() => {
+                      const offerImg = getOfferFirstImage(offer)
+                      return offerImg ? (
+                        <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-gray-100 border border-gray-200">
+                          <img src={offerImg} alt={offer.name} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                        </div>
+                      ) : null
+                    })()}
                     <span className="font-bold text-gray-900 leading-tight">{offer.name}</span>
                   </div>
                   {selectedOffer === offer.id && <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-1" />}
@@ -124,8 +128,8 @@ export function OrderForm({ offers, wilayas, deliveryPrices, defaultCompanyId }:
                 
                 <div className="flex justify-between items-end mt-auto pt-4">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-xl font-bold text-primary">{offer.price} DA</span>
-                    {offer.old_price > 0 && <span className="text-sm text-gray-400 line-through">{offer.old_price} DA</span>}
+                    <span className="text-xl font-bold text-primary glow-price">{offer.price} DA</span>
+                    {offer.old_price > 0 && <span className="text-sm text-gray-400 line-through mr-2">{offer.old_price} DA</span>}
                   </div>
                   
                   <button 
@@ -253,7 +257,7 @@ export function OrderForm({ offers, wilayas, deliveryPrices, defaultCompanyId }:
             )}
             <div className="pt-4 mt-2 border-t border-gray-700 flex justify-between items-center">
               <span className="text-lg font-bold">المجموع الكلي</span>
-              <span className="text-2xl font-black text-emerald-400">{calculatedTotal} DA</span>
+              <span className="text-2xl sm:text-3xl font-black text-emerald-400 glow-price">{calculatedTotal} DA</span>
             </div>
           </div>
         </div>
@@ -261,7 +265,7 @@ export function OrderForm({ offers, wilayas, deliveryPrices, defaultCompanyId }:
         <Button 
           type="submit" 
           disabled={isPending || !selectedWilaya} 
-          className="w-full h-14 text-lg font-bold text-white rounded-xl shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 transition-all duration-300 bg-gradient-to-r from-emerald-500 to-green-600 hover:brightness-110 hover:scale-[1.02] disabled:opacity-70 disabled:shadow-none disabled:hover:scale-100 disabled:hover:brightness-100"
+          className="w-full h-14 text-lg font-bold text-white rounded-xl glow-button shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 transition-all duration-300 bg-gradient-to-r from-emerald-500 to-green-600 hover:brightness-110 hover:scale-[1.02] disabled:opacity-70 disabled:shadow-none disabled:hover:scale-100 disabled:hover:brightness-100 relative overflow-hidden after:absolute after:inset-0 after:-translate-x-full after:animate-[shimmer_3s_infinite] after:bg-gradient-to-r after:from-transparent after:via-white/30 after:to-transparent"
         >
           {isPending ? 'جاري تأكيد الطلب...' : 'تأكيد الطلب الآن'}
         </Button>

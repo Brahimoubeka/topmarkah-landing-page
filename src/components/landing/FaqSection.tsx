@@ -1,23 +1,23 @@
+import { SectionHeading } from './SectionHeading'
+import { parseSectionData } from '@/lib/section-config'
+
 export function FaqSection({ section, faqs }: any) {
+  const parsed = parseSectionData(section)
 
   return (
-    <section id="faq" className="py-20 bg-gray-50">
+    <section id="faq" className="py-8 sm:py-12 bg-gray-50">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-4">
-            {section?.title || 'الأسئلة الشائعة'}
-          </h2>
-          {section?.subtitle && (
-            <p className="text-lg text-gray-500 whitespace-pre-line">{section.subtitle}</p>
-          )}
-          {section?.content && (
-            <p className="mt-4 text-gray-600 whitespace-pre-line text-start">{section.content}</p>
-          )}
-          <div className="h-1 w-20 bg-primary mx-auto rounded-full mt-4"></div>
-        </div>
+        <SectionHeading
+          title={parsed.title || 'الأسئلة الشائعة'}
+          subtitle={parsed.subtitle}
+          icon={parsed.icon}
+          titleColor={parsed.titleColor}
+          fontSize={parsed.fontSize}
+          fontFamily={parsed.fontFamily}
+        />
 
         {faqs && faqs.length > 0 && (
-          <div className="space-y-4">
+          <div className="space-y-2.5">
             {faqs.map((faq: any) => (
               <details key={faq.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 group">
                 <summary className="font-bold text-lg text-gray-900 cursor-pointer list-none flex justify-between items-center">

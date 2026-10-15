@@ -1,62 +1,50 @@
-import { Star } from 'lucide-react'
+import { CheckCircle2, Sparkles } from 'lucide-react'
+import { SectionHeading } from './SectionHeading'
+import { parseSectionData } from '@/lib/section-config'
 
 export function BenefitsSection({ section, product }: any) {
+  const parsed = parseSectionData(section)
+
+  // Use body from landing page config first, or fallback to product benefits
+  const contentText = parsed.body || product?.benefits || product?.description || ''
+
+  // Split into paragraphs or bullet points if multi-line
+  const lines = contentText
+    .split('\n')
+    .map((l: string) => l.trim())
+    .filter((l: string) => l.length > 0)
+
   return (
-    <section id="benefits" className="py-20 bg-white">
+    <section id="benefits" className="py-8 sm:py-12 bg-gray-50">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-4">
-            {section?.title || 'المواصفات والفوائد'}
-          </h2>
-          {section?.subtitle && (
-            <p className="text-lg text-gray-500 whitespace-pre-line">{section.subtitle}</p>
-          )}
-          {section?.content && (
-            <p className="mt-4 text-gray-600 max-w-2xl mx-auto whitespace-pre-line text-start">{section.content}</p>
-          )}
-          <div className="h-1 w-20 bg-primary mx-auto rounded-full mt-4"></div>
-        </div>
+        <SectionHeading
+          title={parsed.title || 'المواصفات والفوائد'}
+          subtitle={parsed.subtitle}
+          icon={parsed.icon}
+          titleColor={parsed.titleColor}
+          fontSize={parsed.fontSize}
+          fontFamily={parsed.fontFamily}
+        />
 
-        <div className="bg-primary/5 p-8 rounded-3xl border border-primary/10 mb-8">
-          <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
-            <Star className="w-6 h-6 text-yellow-500 ml-2" /> 
-            أهم الفوائد:
-          </h3>
-          <p className="whitespace-pre-line text-gray-700 text-lg leading-relaxed text-start">
-            {product?.benefits}
-          </p>
-        </div>
-
-        {product?.description && (
-          <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm mb-8">
-            <h3 className="text-xl font-bold text-gray-900 mb-6">
-              وصف المنتج
-            </h3>
-            <p className="whitespace-pre-line text-gray-700 text-lg leading-relaxed text-start">
-              {product.description}
-            </p>
-          </div>
-        )}
-
-        {product?.specifications && (
-          <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm mb-8">
-            <h3 className="text-xl font-bold text-gray-900 mb-6">
-              المواصفات
-            </h3>
-            <p className="whitespace-pre-line text-gray-700 text-lg leading-relaxed text-start">
-              {product.specifications}
-            </p>
-          </div>
-        )}
-
-        {product?.usage_instructions && (
-          <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm">
-            <h3 className="text-xl font-bold text-gray-900 mb-6">
-              طريقة الاستخدام
-            </h3>
-            <p className="whitespace-pre-line text-gray-700 text-lg leading-relaxed text-start">
-              {product.usage_instructions}
-            </p>
+        {lines.length > 0 && (
+          <div className="max-w-4xl mx-auto grid gap-3 sm:gap-4 md:grid-cols-2">
+            {lines.map((line: string, i: number) => {
+              // Remove leading dashes or bullets if user typed them
+              const cleanLine = line.replace(/^[-•*–—]\s*/, '')
+              return (
+                <div
+                  key={i}
+                  className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-3 transition-all hover:shadow-md hover:border-emerald-200"
+                >
+                  <div className="p-1 rounded-lg bg-emerald-50 text-emerald-600 shrink-0 mt-0.5">
+                    <CheckCircle2 className="w-5 h-5" />
+                  </div>
+                  <p className="text-gray-800 text-sm sm:text-base leading-relaxed text-start flex-1 font-medium">
+                    {cleanLine}
+                  </p>
+                </div>
+              )
+            })}
           </div>
         )}
       </div>
