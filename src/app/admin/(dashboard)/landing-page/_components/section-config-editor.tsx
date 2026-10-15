@@ -1,10 +1,11 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { Save, Sparkles, Type, Palette, Eye } from 'lucide-react'
+import { Save, Sparkles, Type, Palette, Eye, ImagePlus, X, Loader2, AlignRight, AlignLeft } from 'lucide-react'
 import {
   parseSectionData,
   serializeSectionContent,
@@ -15,6 +16,42 @@ import {
   SectionIcon,
   getFontClass,
 } from '@/lib/section-config'
+
+async function compressImage(file: File): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      URL.revokeObjectURL(url)
+      const maxDim = 800
+      let { width, height } = img
+      if (width > maxDim || height > maxDim) {
+        if (width > height) {
+          height = Math.round((height * maxDim) / width)
+          width = maxDim
+        } else {
+          width = Math.round((width * maxDim) / height)
+          height = maxDim
+        }
+      }
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      const ctx = canvas.getContext('2d')!
+      ctx.drawImage(img, 0, 0, width, height)
+      canvas.toBlob(
+        blob => {
+          if (blob) resolve(blob)
+          else reject(new Error('Compression failed'))
+        },
+        'image/jpeg',
+        0.85
+      )
+    }
+    img.onerror = reject
+    img.src = url
+  })
+}
 
 export function SectionConfigEditor({
   section,
@@ -27,10 +64,11 @@ export function SectionConfigEditor({
     title: string | null
     subtitle: string | null
     content: string | null
+    image_url?: string | null
     is_active: boolean
   }
   saving: boolean
-  onSave: (fields: { title: string; subtitle: string; content: string }) => void
+  onSave: (fields: { title: string; subtitle: string; content: string; image_url?: string }) => void
 }) {
   const parsed = parseSectionData(section)
 
@@ -41,6 +79,11 @@ export function SectionConfigEditor({
   const [titleColor, setTitleColor] = useState(parsed.titleColor)
   const [fontSize, setFontSize] = useState(parsed.fontSize)
   const [fontFamily, setFontFamily] = useState(parsed.fontFamily)
+  const [imageUrl, setImageUrl] = useState(parsed.imageUrl || '')
+  const [imagePosition, setImagePosition] = useState<'right' | 'left'>(parsed.imagePosition || 'right')
+  const [uploadingImage, setUploadingImage] = useState(false)
+
+  const supabase = createClient()
 
   useEffect(() => {
     const updated = parseSectionData(section)
@@ -51,7 +94,32 @@ export function SectionConfigEditor({
     setTitleColor(updated.titleColor)
     setFontSize(updated.fontSize)
     setFontFamily(updated.fontFamily)
-  }, [section.id, section.content, section.title, section.subtitle])
+    setImageUrl(updated.imageUrl || '')
+    setImagePosition(updated.imagePosition || 'right')
+  }, [section.id, section.content, section.title, section.subtitle, section.image_url])
+
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingImage(true)
+    try {
+      const compressedBlob = await compressImage(file)
+      const path = `sections/${section.id || Date.now()}_${Date.now()}.jpg`
+      const { error: uploadError } = await supabase.storage
+        .from('landing')
+        .upload(path, compressedBlob, { contentType: 'image/jpeg', upsert: true })
+
+      if (uploadError) throw uploadError
+
+      const { data: urlData } = supabase.storage.from('landing').getPublicUrl(path)
+      setImageUrl(urlData.publicUrl)
+    } catch (err) {
+      console.error('Image upload failed', err)
+      alert('فشل في رفع الصورة. يرجى المحاولة مرة أخرى.')
+    } finally {
+      setUploadingImage(false)
+    }
+  }
 
   const handleSave = () => {
     const serializedContent = serializeSectionContent({
@@ -60,12 +128,15 @@ export function SectionConfigEditor({
       titleColor,
       fontSize,
       fontFamily,
+      imageUrl,
+      imagePosition,
     })
 
     onSave({
       title,
       subtitle,
       content: serializedContent,
+      image_url: imageUrl || '',
     })
   }
 
@@ -210,6 +281,103 @@ export function SectionConfigEditor({
         </div>
       </div>
 
+      {/* ── Optional Small 1:1 Image & Alignment ── */}
+      <div className="bg-white p-4 rounded-xl border border-gray-200/80 space-y-4">
+        <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+          <div className="flex items-center gap-2 text-xs font-bold text-gray-800">
+            <ImagePlus className="w-4 h-4 text-emerald-600" />
+            <span>صورة مصغرة للقسم (اختياري - 1:1 Small Square Image)</span>
+          </div>
+          {imageUrl && (
+            <button
+              type="button"
+              onClick={() => setImageUrl('')}
+              className="text-xs text-red-500 hover:underline flex items-center gap-1 font-medium"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span>إزالة الصورة</span>
+            </button>
+          )}
+        </div>
+
+        <div className="grid gap-6 sm:grid-cols-[auto_1fr] items-start">
+          {/* 1:1 Square Image Picker */}
+          <div className="space-y-1.5">
+            <Label className="text-xs text-gray-600">الصورة المربعة (1:1 Aspect Ratio)</Label>
+            <div className="relative w-28 h-28 rounded-2xl overflow-hidden border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center group hover:border-emerald-500 transition-colors">
+              {uploadingImage ? (
+                <div className="flex flex-col items-center justify-center text-emerald-600">
+                  <Loader2 className="w-6 h-6 animate-spin mb-1" />
+                  <span className="text-[10px] font-medium">جاري الرفع...</span>
+                </div>
+              ) : imageUrl ? (
+                <>
+                  <img src={imageUrl} alt="Section Thumbnail" className="w-full h-full object-cover" />
+                  <label className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer text-white text-[11px] font-medium">
+                    <ImagePlus className="w-5 h-5 mb-1" />
+                    تغيير
+                    <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                  </label>
+                </>
+              ) : (
+                <label className="flex flex-col items-center justify-center w-full h-full cursor-pointer text-gray-400 group-hover:text-emerald-600 transition-colors p-2 text-center">
+                  <ImagePlus className="w-6 h-6 mb-1 text-gray-400 group-hover:text-emerald-500" />
+                  <span className="text-[10px] font-semibold">إضافة صورة 1:1</span>
+                  <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                </label>
+              )}
+            </div>
+          </div>
+
+          {/* Position Selector */}
+          <div className="space-y-2">
+            <Label className="text-xs text-gray-600 font-semibold">
+              موضع الصورة بالنسبة للنص (Inline Image Position)
+            </Label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md">
+              <button
+                type="button"
+                onClick={() => setImagePosition('right')}
+                className={`flex items-center gap-3 p-3 rounded-xl border text-start transition-all ${
+                  imagePosition === 'right'
+                    ? 'border-emerald-600 bg-emerald-50 text-emerald-900 shadow-sm ring-1 ring-emerald-500 font-bold'
+                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700'
+                }`}
+              >
+                <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                  <AlignRight className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold">الصورة على اليمين</div>
+                  <div className="text-[10px] text-gray-500 font-normal">النص بجوارها على اليسار</div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setImagePosition('left')}
+                className={`flex items-center gap-3 p-3 rounded-xl border text-start transition-all ${
+                  imagePosition === 'left'
+                    ? 'border-emerald-600 bg-emerald-50 text-emerald-900 shadow-sm ring-1 ring-emerald-500 font-bold'
+                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700'
+                }`}
+              >
+                <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                  <AlignLeft className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold">الصورة على اليسار</div>
+                  <div className="text-[10px] text-gray-500 font-normal">النص بجوارها على اليمين</div>
+                </div>
+              </button>
+            </div>
+            <p className="text-[11px] text-gray-400">
+              تظهر الصورة بجانب النص مباشرة في جميع الشاشات (الهواتف والكمبيوتر).
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* ── Content / Paragraph Body ── */}
       <div className="space-y-1.5">
         <Label className="text-xs font-semibold text-gray-700">
@@ -231,7 +399,7 @@ export function SectionConfigEditor({
       <div className="bg-white p-4 rounded-xl border border-dashed border-gray-300">
         <div className="flex items-center gap-1.5 text-xs text-gray-400 font-medium mb-3">
           <Eye className="w-3.5 h-3.5" />
-          <span>معاينة حية لشكل العنوان والفقرة (Live Preview)</span>
+          <span>معاينة حية لشكل العنوان والصورة والفقرة (Live Preview)</span>
         </div>
 
         <div className="text-center py-2">
@@ -256,9 +424,24 @@ export function SectionConfigEditor({
             </p>
           )}
 
-          {body && (
-            <div className="mt-3 text-sm text-gray-600 whitespace-pre-line max-w-xl mx-auto leading-relaxed text-start bg-gray-50 p-3 rounded-lg border border-gray-100">
-              {body}
+          {(body || imageUrl) && (
+            <div
+              className={`mt-4 bg-gray-50 p-4 rounded-2xl border border-gray-100 max-w-2xl mx-auto shadow-sm ${
+                imageUrl
+                  ? `flex ${imagePosition === 'left' ? 'flex-row-reverse' : 'flex-row'} items-start gap-3.5 sm:gap-4`
+                  : ''
+              }`}
+            >
+              {imageUrl && (
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border-2 border-white shadow-sm shrink-0 bg-white">
+                  <img src={imageUrl} alt="Thumbnail Preview" className="w-full h-full object-cover" />
+                </div>
+              )}
+              {body && (
+                <div className={`flex-1 min-w-0 text-sm text-gray-700 whitespace-pre-line leading-relaxed text-start ${selectedFontClass}`}>
+                  {body}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -268,7 +451,7 @@ export function SectionConfigEditor({
       <div className="flex justify-end gap-3 pt-2">
         <Button
           size="sm"
-          disabled={saving}
+          disabled={saving || uploadingImage}
           onClick={handleSave}
           className="gap-2 px-5 py-2 font-bold shadow-md shadow-primary/20"
         >

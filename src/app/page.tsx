@@ -12,6 +12,7 @@ import { StickyOrderButton } from '@/components/landing/StickyOrderButton'
 import { Header } from '@/components/landing/Header'
 import { ScrollToTopButton } from '@/components/landing/ScrollToTopButton'
 import { SectionHeading } from '@/components/landing/SectionHeading'
+import { CustomSection } from '@/components/landing/CustomSection'
 import { parseSectionData } from '@/lib/section-config'
 import Script from 'next/script'
 
@@ -162,88 +163,141 @@ export default async function LandingPage() {
 
       <Header logoUrl={settings?.logo_url} />
 
-      {/* ── HERO ── */}
-      {isActive('hero') && (
-        <HeroSection
-          section={sectionMap['hero']}
-          product={product}
-        />
-      )}
-
-      {/* ── OFFERS ── */}
-      {isActive('offers') && (
-        <OffersSection section={sectionMap['offers']} offers={offers || []} />
-      )}
-
-      {/* ── PRODUCT / STORY DETAILS ── */}
-      {isActive('product') && (() => {
-        const parsedProduct = parseSectionData(sectionMap['product'])
-        const contentText = parsedProduct.body || product?.description || ''
-        return (
-          <section id="details" className="py-8 sm:py-12 bg-white">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-              <SectionHeading
-                title={parsedProduct.title || product?.name || 'تفاصيل المنتج'}
-                subtitle={parsedProduct.subtitle}
-                icon={parsedProduct.icon}
-                titleColor={parsedProduct.titleColor}
-                fontSize={parsedProduct.fontSize}
-                fontFamily={parsedProduct.fontFamily}
+      {/* ── DYNAMIC SECTIONS IN DISPLAY ORDER ── */}
+      {sections?.map((section) => {
+        switch (section.section_id) {
+          case 'hero':
+            return (
+              <HeroSection
+                key={section.id}
+                section={section}
+                product={product}
               />
-              {contentText && (
-                <div className="max-w-3xl mx-auto text-gray-700 whitespace-pre-line text-start leading-relaxed bg-gray-50/80 p-6 sm:p-8 rounded-2xl sm:rounded-3xl border border-gray-100 shadow-sm text-base sm:text-lg">
-                  {contentText}
+            )
+
+          case 'offers':
+            return (
+              <OffersSection
+                key={section.id}
+                section={section}
+                offers={offers || []}
+              />
+            )
+
+          case 'product': {
+            const parsedProduct = parseSectionData(section)
+            const contentText = parsedProduct.body || product?.description || ''
+            const isImageLeft = parsedProduct.imagePosition === 'left'
+            return (
+              <section key={section.id} id="details" className="py-8 sm:py-12 bg-white">
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                  <SectionHeading
+                    title={parsedProduct.title || product?.name || 'تفاصيل المنتج'}
+                    subtitle={parsedProduct.subtitle}
+                    icon={parsedProduct.icon}
+                    titleColor={parsedProduct.titleColor}
+                    fontSize={parsedProduct.fontSize}
+                    fontFamily={parsedProduct.fontFamily}
+                  />
+                  {(contentText || parsedProduct.imageUrl) && (
+                    <div className="max-w-3xl mx-auto">
+                      <div
+                        className={`bg-gray-50/80 p-4 sm:p-8 rounded-2xl sm:rounded-3xl ${
+                          parsedProduct.imageUrl
+                            ? `flex ${isImageLeft ? 'flex-row-reverse' : 'flex-row'} items-start gap-3.5 sm:gap-6`
+                            : ''
+                        }`}
+                      >
+                        {parsedProduct.imageUrl && (
+                          <div className="shrink-0">
+                            <div className="w-20 h-20 sm:w-32 sm:h-32 aspect-square rounded-xl sm:rounded-2xl overflow-hidden bg-white">
+                              <img
+                                src={parsedProduct.imageUrl}
+                                alt={parsedProduct.title || 'Product Image'}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          </div>
+                        )}
+                        {contentText && (
+                          <div className="flex-1 min-w-0 text-gray-700 whitespace-pre-line text-start leading-relaxed text-sm sm:text-lg">
+                            {contentText}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          </section>
-        )
-      })()}
+              </section>
+            )
+          }
 
-      {/* ── BENEFITS ── */}
-      {isActive('benefits') && (
-        <BenefitsSection section={sectionMap['benefits']} product={product} />
-      )}
+          case 'benefits':
+            return (
+              <BenefitsSection
+                key={section.id}
+                section={section}
+                product={product}
+              />
+            )
 
-      {/* ── TESTIMONIALS ── */}
-      {isActive('testimonials') && (
-        <TestimonialsSection
-          section={sectionMap['testimonials']}
-          testimonials={testimonials || []}
-        />
-      )}
+          case 'testimonials':
+            return (
+              <TestimonialsSection
+                key={section.id}
+                section={section}
+                testimonials={testimonials || []}
+              />
+            )
 
-      {/* ── FAQ ── */}
-      {isActive('faq') && (
-        <FaqSection section={sectionMap['faq']} faqs={faqs || []} />
-      )}
+          case 'faq':
+            return (
+              <FaqSection
+                key={section.id}
+                section={section}
+                faqs={faqs || []}
+              />
+            )
 
-      {/* ── DELIVERY INFO ── */}
-      {isActive('delivery') && (
-        <DeliverySection section={sectionMap['delivery']} />
-      )}
+          case 'delivery':
+            return (
+              <DeliverySection
+                key={section.id}
+                section={section}
+              />
+            )
 
-      {/* ── ORDER FORM ── */}
-      {isActive('order') && (
-        <section id="order-form" className="py-10 sm:py-14 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
-          <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 relative z-10">
-            {sectionMap['order']?.title && (
-              <div className="text-center mb-6 sm:mb-8">
-                <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-gray-900">{sectionMap['order'].title}</h2>
-                {sectionMap['order']?.subtitle && (
-                  <p className="mt-2 text-sm sm:text-base text-gray-500">{sectionMap['order'].subtitle}</p>
-                )}
-              </div>
-            )}
-            <OrderForm
-              offers={offers || []}
-              wilayas={wilayas || []}
-              deliveryPrices={deliveryPrices || []}
-              defaultCompanyId={defaultCompany?.id}
-            />
-          </div>
-        </section>
-      )}
+          case 'order':
+            return (
+              <section key={section.id} id="order-form" className="py-10 sm:py-14 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
+                <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 relative z-10">
+                  {section?.title && (
+                    <div className="text-center mb-6 sm:mb-8">
+                      <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-gray-900">{section.title}</h2>
+                      {section?.subtitle && (
+                        <p className="mt-2 text-sm sm:text-base text-gray-500">{section.subtitle}</p>
+                      )}
+                    </div>
+                  )}
+                  <OrderForm
+                    offers={offers || []}
+                    wilayas={wilayas || []}
+                    deliveryPrices={deliveryPrices || []}
+                    defaultCompanyId={defaultCompany?.id}
+                  />
+                </div>
+              </section>
+            )
+
+          default:
+            return (
+              <CustomSection
+                key={section.id}
+                section={section}
+              />
+            )
+        }
+      })}
 
       {/* ── FOOTER ── */}
       <footer className="bg-gray-900 text-gray-400 py-12">

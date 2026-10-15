@@ -39,10 +39,10 @@ export function TestimonialsSection({ section, testimonials }: any) {
         )}
 
         {/* ── Customer Reviews Image Carousel (Scrolls like product images) ── */}
-        <div className={`bg-gray-50/80 rounded-2xl sm:rounded-3xl border border-gray-200/80 p-3 sm:p-6 shadow-sm ${fontClass}`}>
+        <div className={`bg-gray-50/80 rounded-2xl sm:rounded-3xl p-3 sm:p-6 ${fontClass}`}>
           <div className="relative select-none w-full max-w-xl mx-auto">
             {currentItem.image_url ? (
-              <div className="relative rounded-xl sm:rounded-2xl overflow-hidden aspect-[4/3] bg-gray-900/5 border border-gray-200 flex items-center justify-center shadow-inner">
+              <div className="relative rounded-xl sm:rounded-2xl overflow-hidden aspect-[4/3] bg-gray-900/5 flex items-center justify-center">
                 <img
                   key={current}
                   src={currentItem.image_url}
@@ -81,7 +81,7 @@ export function TestimonialsSection({ section, testimonials }: any) {
                 )}
               </div>
             ) : (
-              <div className="aspect-[4/3] rounded-xl sm:rounded-2xl bg-white border border-gray-200 p-6 flex flex-col items-center justify-center text-center">
+              <div className="aspect-[4/3] rounded-xl sm:rounded-2xl bg-white p-6 flex flex-col items-center justify-center text-center">
                 <Quote className="w-10 h-10 text-primary/30 mb-3" />
                 {currentItem.comment && (
                   <p className="text-gray-700 text-base sm:text-lg italic mb-2">"{currentItem.comment}"</p>

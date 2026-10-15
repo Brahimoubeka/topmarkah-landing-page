@@ -77,7 +77,7 @@ export function OrderForm({ offers, wilayas, deliveryPrices, defaultCompanyId }:
   }
 
   return (
-    <form action={formAction} className="bg-white rounded-3xl p-6 md:p-8 shadow-xl border border-gray-100 relative overflow-hidden">
+    <form action={formAction} className="bg-white rounded-3xl p-6 md:p-8 relative overflow-hidden">
       {/* Decorative blobs */}
       <div className="absolute top-0 right-0 -mr-16 -mt-16 w-32 h-32 rounded-full bg-primary/5 opacity-50 blur-2xl"></div>
       <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-32 h-32 rounded-full bg-emerald-50 opacity-50 blur-2xl"></div>

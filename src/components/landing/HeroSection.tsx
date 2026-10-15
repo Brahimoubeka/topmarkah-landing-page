@@ -20,7 +20,7 @@ function ImageSlideshow({ images }: { images: string[] }) {
   return (
     <div className="relative select-none w-full">
       {/* 4:3 Aspect Ratio - 0 margin with screen corners on mobile */}
-      <div className="relative w-full aspect-[4/3] bg-gray-100 overflow-hidden rounded-none sm:rounded-3xl shadow-sm sm:shadow-2xl">
+      <div className="relative w-full aspect-[4/3] bg-gray-100 overflow-hidden rounded-none sm:rounded-3xl">
         <img
           key={current}
           src={images[current]}
@@ -82,7 +82,7 @@ function YouTubeEmbed({ url }: { url: string }) {
   if (!id) return null
 
   return (
-    <div className="rounded-none sm:rounded-3xl overflow-hidden shadow-sm sm:shadow-xl bg-black w-full">
+    <div className="rounded-none sm:rounded-3xl overflow-hidden bg-black w-full">
       {!playing ? (
         <div
           className="relative aspect-video bg-gray-900 cursor-pointer group"
@@ -159,7 +159,7 @@ export function HeroSection({ section, product }: any) {
                     )}
                   </>
                 ) : (
-                  <div className="rounded-none sm:rounded-3xl bg-gray-100 p-2 shadow-sm sm:shadow-xl border-y sm:border border-gray-100 overflow-hidden">
+                  <div className="rounded-none sm:rounded-3xl bg-gray-100 p-2 overflow-hidden">
                     <div className="aspect-[4/3] rounded-none sm:rounded-2xl bg-gray-200 flex items-center justify-center text-gray-400 overflow-hidden relative">
                       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5"></div>
                       <span className="z-10 flex flex-col items-center">

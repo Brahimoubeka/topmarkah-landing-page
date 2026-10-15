@@ -6,7 +6,7 @@ export function DeliverySection({ section }: any) {
   const parsed = parseSectionData(section)
 
   return (
-    <section id="delivery" className="py-4 sm:py-8 bg-white border-y border-gray-100/80">
+    <section id="delivery" className="py-4 sm:py-8 bg-white">
       <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8">
         <SectionHeading
           title={parsed.title || 'معلومات التوصيل'}

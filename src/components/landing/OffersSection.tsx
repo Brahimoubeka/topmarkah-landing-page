@@ -135,7 +135,7 @@ export function OffersSection({ section, offers }: any) {
               return (
                 <div 
                   key={offer.id} 
-                  className={`bg-white sm:rounded-3xl border-y sm:border border-gray-200/80 sm:border-gray-100 shadow-sm sm:shadow-md relative overflow-hidden transition-all duration-300 hover:shadow-xl flex flex-col justify-between ${offerFontClass}`}
+                  className={`bg-white sm:rounded-3xl relative overflow-hidden transition-all duration-300 flex flex-col justify-between ${offerFontClass}`}
                 >
                   {/* Badges */}
                   <div className="absolute top-3 left-3 z-20 flex flex-col gap-1.5 items-start">

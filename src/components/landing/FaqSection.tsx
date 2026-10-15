@@ -19,7 +19,7 @@ export function FaqSection({ section, faqs }: any) {
         {faqs && faqs.length > 0 && (
           <div className="space-y-2.5">
             {faqs.map((faq: any) => (
-              <details key={faq.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 group">
+              <details key={faq.id} className="bg-white p-6 rounded-2xl group">
                 <summary className="font-bold text-lg text-gray-900 cursor-pointer list-none flex justify-between items-center">
                   {faq.question}
                   <span className="transition group-open:rotate-180">

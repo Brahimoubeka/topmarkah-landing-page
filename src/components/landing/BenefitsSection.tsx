@@ -34,7 +34,7 @@ export function BenefitsSection({ section, product }: any) {
               return (
                 <div
                   key={i}
-                  className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-3 transition-all hover:shadow-md hover:border-emerald-200"
+                  className="bg-white p-4 sm:p-5 rounded-2xl flex items-start gap-3 transition-colors"
                 >
                   <div className="p-1 rounded-lg bg-emerald-50 text-emerald-600 shrink-0 mt-0.5">
                     <CheckCircle2 className="w-5 h-5" />

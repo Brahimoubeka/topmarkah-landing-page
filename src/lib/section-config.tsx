@@ -26,6 +26,8 @@ export interface SectionStyleConfig {
   titleColor: string
   fontSize: string
   fontFamily: string
+  imageUrl?: string
+  imagePosition?: 'right' | 'left'
 }
 
 export const ARABIC_FONTS = [
@@ -98,6 +100,8 @@ export function parseSectionData(section: any): SectionStyleConfig {
   let titleColor = ''
   let fontSize = 'text-2xl sm:text-4xl'
   let fontFamily = 'cairo'
+  let imageUrl = section?.image_url || ''
+  let imagePosition: 'right' | 'left' = 'right'
 
   if (section?.content) {
     const trimmed = String(section.content).trim()
@@ -109,6 +113,8 @@ export function parseSectionData(section: any): SectionStyleConfig {
         titleColor = parsed.titleColor || ''
         fontSize = parsed.fontSize || 'text-2xl sm:text-4xl'
         fontFamily = parsed.fontFamily || 'cairo'
+        if (parsed.imageUrl !== undefined) imageUrl = parsed.imageUrl
+        if (parsed.imagePosition) imagePosition = parsed.imagePosition
       } catch (e) {
         // Fallback to raw string
       }
@@ -123,6 +129,8 @@ export function parseSectionData(section: any): SectionStyleConfig {
     titleColor,
     fontSize,
     fontFamily,
+    imageUrl,
+    imagePosition,
   }
 }
 
@@ -132,6 +140,8 @@ export function serializeSectionContent(params: {
   titleColor?: string
   fontSize?: string
   fontFamily?: string
+  imageUrl?: string
+  imagePosition?: 'right' | 'left'
 }): string {
   return JSON.stringify({
     body: params.body || '',
@@ -139,6 +149,8 @@ export function serializeSectionContent(params: {
     titleColor: params.titleColor || '',
     fontSize: params.fontSize || 'text-2xl sm:text-4xl',
     fontFamily: params.fontFamily || 'cairo',
+    imageUrl: params.imageUrl || '',
+    imagePosition: params.imagePosition || 'right',
   })
 }
 

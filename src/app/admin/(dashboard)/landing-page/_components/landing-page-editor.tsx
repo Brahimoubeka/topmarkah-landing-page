@@ -8,9 +8,10 @@ import { Label } from '@/components/ui/label'
 import { 
   Eye, EyeOff, GripVertical, Save, ExternalLink,
   ChevronDown, ChevronUp, Palette, Plus, Trash2, Star,
-  ImagePlus, Loader2, X
+  ImagePlus, Loader2, X, ArrowUp, ArrowDown, Sparkles
 } from 'lucide-react'
 import { SectionConfigEditor } from './section-config-editor'
+import { serializeSectionContent } from '@/lib/section-config'
 
 // ── Image compression using Canvas ──────────────────────────────────────────
 const MAX_WIDTH = 1200
@@ -51,6 +52,7 @@ type Section = {
   title: string | null
   subtitle: string | null
   content: string | null
+  image_url?: string | null
   is_active: boolean
   display_order: number
 }
@@ -162,7 +164,7 @@ export function LandingPageEditor({ sections, settings, products, testimonials: 
     setSaving(null)
   }
 
-  async function saveSectionCustom(sectionId: string, fields: { title: string; subtitle: string; content: string }) {
+  async function saveSectionCustom(sectionId: string, fields: { title: string; subtitle: string; content: string; image_url?: string }) {
     setSaving(sectionId)
     setLocalSections(prev =>
       prev.map(s => s.id === sectionId ? { ...s, ...fields } : s)
@@ -175,6 +177,84 @@ export function LandingPageEditor({ sections, settings, products, testimonials: 
     setLocalSections(prev =>
       prev.map(s => s.id === id ? { ...s, [field]: value } : s)
     )
+  }
+
+  const [isAddingSection, setIsAddingSection] = useState(false)
+  const [reordering, setReordering] = useState(false)
+
+  async function moveSection(index: number, direction: 'up' | 'down') {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1
+    if (targetIndex < 0 || targetIndex >= localSections.length) return
+
+    setReordering(true)
+    const updated = [...localSections]
+    const [moved] = updated.splice(index, 1)
+    updated.splice(targetIndex, 0, moved)
+
+    const reordered = updated.map((sec, idx) => ({
+      ...sec,
+      display_order: idx + 1,
+    }))
+
+    setLocalSections(reordered)
+
+    try {
+      await Promise.all(
+        reordered.map(sec =>
+          supabase.from('landing_sections').update({ display_order: sec.display_order }).eq('id', sec.id)
+        )
+      )
+    } catch (err) {
+      console.error('Error reordering sections:', err)
+    } finally {
+      setReordering(false)
+    }
+  }
+
+  async function addNewSection() {
+    setIsAddingSection(true)
+    const customId = `custom_${Date.now()}`
+    const newOrder = localSections.length + 1
+    const defaultContent = serializeSectionContent({
+      body: 'أدخل تفاصيل ومحتوى هذا القسم هنا...',
+      icon: 'Sparkles',
+      titleColor: '#0f172a',
+      fontSize: 'text-2xl sm:text-4xl',
+      fontFamily: 'cairo',
+    })
+
+    const newSec = {
+      section_id: customId,
+      title: 'قسم مخصص جديد',
+      subtitle: 'وصف فرعي توضيحي للقسم',
+      content: defaultContent,
+      is_active: true,
+      display_order: newOrder,
+    }
+
+    const { data, error } = await supabase
+      .from('landing_sections')
+      .insert(newSec)
+      .select()
+      .single()
+
+    if (!error && data) {
+      setLocalSections(prev => [...prev, data as Section])
+      setExpandedSection(data.id)
+    } else {
+      console.error('Failed to add custom section', error)
+      alert('فشل في إضافة القسم الجديد. يرجى المحاولة مرة أخرى.')
+    }
+    setIsAddingSection(false)
+  }
+
+  async function deleteSection(section: Section) {
+    if (!confirm(`هل أنت متأكد من حذف قسم "${section.title || section.section_id}" نهائياً؟`)) return
+    await supabase.from('landing_sections').delete().eq('id', section.id)
+    setLocalSections(prev => {
+      const remaining = prev.filter(s => s.id !== section.id)
+      return remaining.map((s, idx) => ({ ...s, display_order: idx + 1 }))
+    })
   }
 
   // ── SETTINGS ──────────────────────────────────────────────
@@ -404,62 +484,134 @@ export function LandingPageEditor({ sections, settings, products, testimonials: 
             </div>
           </div>
 
+          {/* Section Header Controls & Add Button */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+            <div>
+              <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                <span>أقسام صفحة الهبوط وترتيبها</span>
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+                  {localSections.length} أقسام
+                </span>
+              </h2>
+              <p className="text-xs text-gray-500 mt-1">
+                يمكنك إعادة ترتيب أي قسم بالأسهم (⬆️ ⬇️)، التحكم بالظهور، وتعديل العناوين والألوان والخطوط والمحتوى بحرية تامة.
+              </p>
+            </div>
+            <Button
+              type="button"
+              onClick={addNewSection}
+              disabled={isAddingSection}
+              className="gap-2 shrink-0 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs h-9 shadow-sm"
+            >
+              {isAddingSection ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+              <span>إضافة قسم جديد (Add Section)</span>
+            </Button>
+          </div>
+
           {/* Section List */}
           <div className="space-y-3">
-            {localSections.map(section => (
-              <div
-                key={section.id}
-                className={`rounded-xl border-2 bg-white transition-all ${
-                  section.is_active ? 'border-gray-200' : 'border-dashed border-gray-200 opacity-60'
-                }`}
-              >
-                {/* Section Header */}
-                <div className="flex items-center gap-3 px-4 py-3">
-                  <GripVertical className="w-5 h-5 text-gray-300 shrink-0" />
+            {localSections.map((section, index) => {
+              const isCustom = section.section_id.startsWith('custom_')
+              const sectionLabel = SECTION_LABELS[section.section_id] || section.title || section.section_id
 
-                  <div className="flex-1 min-w-0">
-                    <span className="font-semibold text-sm text-gray-800">
-                      {SECTION_LABELS[section.section_id] || section.section_id}
-                    </span>
-                    {section.title && (
-                      <span className="ml-2 text-xs text-gray-500 truncate hidden sm:inline">— {section.title}</span>
-                    )}
+              return (
+                <div
+                  key={section.id}
+                  className={`rounded-xl border-2 bg-white transition-all ${
+                    section.is_active ? 'border-gray-200 shadow-sm' : 'border-dashed border-gray-200 opacity-60'
+                  }`}
+                >
+                  {/* Section Header */}
+                  <div className="flex items-center gap-3 px-4 py-3">
+                    {/* Reorder Buttons */}
+                    <div className="flex items-center gap-1 shrink-0">
+                      <span className="w-6 text-center text-xs font-bold text-gray-400 font-mono">
+                        #{index + 1}
+                      </span>
+                      <button
+                        type="button"
+                        disabled={index === 0 || reordering}
+                        onClick={() => moveSection(index, 'up')}
+                        title="تحريك لأعلى (Move Up)"
+                        className="p-1 rounded-md border border-gray-200 hover:bg-gray-100 disabled:opacity-20 disabled:hover:bg-transparent text-gray-600 transition-colors"
+                      >
+                        <ArrowUp className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        disabled={index === localSections.length - 1 || reordering}
+                        onClick={() => moveSection(index, 'down')}
+                        title="تحريك لأسفل (Move Down)"
+                        className="p-1 rounded-md border border-gray-200 hover:bg-gray-100 disabled:opacity-20 disabled:hover:bg-transparent text-gray-600 transition-colors"
+                      >
+                        <ArrowDown className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    <div className="flex-1 min-w-0 flex items-center gap-2">
+                      <span className="font-semibold text-sm text-gray-800 truncate">
+                        {isCustom ? `✨ ${section.title || 'قسم مخصص'}` : sectionLabel}
+                      </span>
+                      {isCustom ? (
+                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 shrink-0">
+                          مخصص Custom
+                        </span>
+                      ) : (
+                        section.title && (
+                          <span className="ml-2 text-xs text-gray-400 truncate hidden sm:inline">— {section.title}</span>
+                        )
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      {isCustom && (
+                        <button
+                          type="button"
+                          onClick={() => deleteSection(section)}
+                          title="حذف هذا القسم (Delete Section)"
+                          className="p-1.5 rounded-md text-red-500 hover:bg-red-50 hover:text-red-700 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => toggleSection(section.id, section.is_active)}
+                        className={`flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full transition-colors ${
+                          section.is_active
+                            ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+                            : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                        }`}
+                      >
+                        {section.is_active ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                        {section.is_active ? 'Visible' : 'Hidden'}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setExpandedSection(expandedSection === section.id ? null : section.id)}
+                        className="p-1.5 rounded-md hover:bg-gray-100 transition-colors text-gray-500"
+                        title={expandedSection === section.id ? 'طي التفاصيل' : 'تعديل القسم والألوان والخط'}
+                      >
+                        {expandedSection === section.id
+                          ? <ChevronUp className="w-4 h-4 text-blue-600" />
+                          : <ChevronDown className="w-4 h-4 text-gray-500" />}
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button
-                      onClick={() => toggleSection(section.id, section.is_active)}
-                      className={`flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full transition-colors ${
-                        section.is_active
-                          ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
-                          : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                      }`}
-                    >
-                      {section.is_active ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-                      {section.is_active ? 'Visible' : 'Hidden'}
-                    </button>
-
-                    <button
-                      onClick={() => setExpandedSection(expandedSection === section.id ? null : section.id)}
-                      className="p-1 rounded-md hover:bg-gray-100 transition-colors"
-                    >
-                      {expandedSection === section.id
-                        ? <ChevronUp className="w-4 h-4 text-gray-500" />
-                        : <ChevronDown className="w-4 h-4 text-gray-500" />}
-                    </button>
-                  </div>
+                  {/* Section Editor */}
+                  {expandedSection === section.id && (
+                    <SectionConfigEditor
+                      section={section}
+                      saving={saving === section.id}
+                      onSave={(fields) => saveSectionCustom(section.id, fields)}
+                    />
+                  )}
                 </div>
-
-                {/* Section Editor */}
-                {expandedSection === section.id && (
-                  <SectionConfigEditor
-                    section={section}
-                    saving={saving === section.id}
-                    onSave={(fields) => saveSectionCustom(section.id, fields)}
-                  />
-                )}
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       )}
