@@ -21,10 +21,48 @@ export const revalidate = 10 // Cache landing page for instant loading (revalida
 export async function generateMetadata(): Promise<Metadata> {
   const supabase = await createClient()
   const { data: settings } = await supabase.from('site_settings').select('*').single()
-  
+
+  let previewImage = settings?.logo_url || settings?.favicon_url || null
+  if (!previewImage) {
+    const { data: products } = await supabase
+      .from('products')
+      .select('product_media(*)')
+      .eq('is_active', true)
+      .order('is_featured', { ascending: false })
+      .limit(1)
+    previewImage = products?.[0]?.product_media?.[0]?.media_url || null
+  }
+
+  const title = settings?.seo_title || settings?.company_name || "TopMarkah"
+  const description = settings?.seo_description || "اكتشف أفضل المنتجات المميزة مع توصيل سريع لجميع الولايات والدفع عند الاستلام."
+
   return {
-    title: settings?.seo_title || settings?.company_name || "TopMarkah",
-    description: settings?.seo_description || "Premium products delivered to you.",
+    title,
+    description,
+    icons: previewImage ? {
+      icon: previewImage,
+      shortcut: previewImage,
+      apple: previewImage,
+    } : undefined,
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+      locale: 'ar_DZ',
+      siteName: settings?.company_name || 'TopMarkah',
+      images: previewImage ? [
+        {
+          url: previewImage,
+          alt: title,
+        }
+      ] : [],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: previewImage ? [previewImage] : [],
+    },
   }
 }
 

@@ -37,10 +37,32 @@ const amiri = Amiri({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: "TopMarkah - Premium Products",
-  description: "Get the best premium products delivered to your door.",
-};
+import { createClient } from "@/lib/supabase/server";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const supabase = await createClient();
+  const { data: settings } = await supabase.from("site_settings").select("*").single();
+  const logo = settings?.logo_url || settings?.favicon_url || undefined;
+  const title = settings?.company_name || "TopMarkah";
+
+  return {
+    title,
+    description: settings?.seo_description || "Premium products delivered to you.",
+    icons: logo
+      ? {
+          icon: logo,
+          shortcut: logo,
+          apple: logo,
+        }
+      : undefined,
+    openGraph: logo
+      ? {
+          title,
+          images: [{ url: logo }],
+        }
+      : undefined,
+  };
+}
 
 export default function RootLayout({
   children,
