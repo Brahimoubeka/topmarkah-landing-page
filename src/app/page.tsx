@@ -16,7 +16,7 @@ import { CustomSection } from '@/components/landing/CustomSection'
 import { parseSectionData } from '@/lib/section-config'
 import Script from 'next/script'
 
-export const revalidate = 0 // Disable cache for development
+export const revalidate = 10 // Cache landing page for instant loading (revalidates every 10s)
 
 export async function generateMetadata(): Promise<Metadata> {
   const supabase = await createClient()

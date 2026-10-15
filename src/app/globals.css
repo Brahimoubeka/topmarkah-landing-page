@@ -1,20 +1,19 @@
-@import url('https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&family=Amiri:wght@400;700&family=Cairo:wght@400;600;700;800;900&family=Readex+Pro:wght@400;500;600;700&family=Tajawal:wght@400;500;700;800;900&display=swap');
 @import "tailwindcss";
 
 .font-cairo {
-  font-family: 'Cairo', sans-serif !important;
+  font-family: var(--font-cairo), 'Cairo', sans-serif !important;
 }
 .font-tajawal {
-  font-family: 'Tajawal', sans-serif !important;
+  font-family: var(--font-tajawal), 'Tajawal', sans-serif !important;
 }
 .font-almarai {
-  font-family: 'Almarai', sans-serif !important;
+  font-family: var(--font-almarai), 'Almarai', sans-serif !important;
 }
 .font-readex {
-  font-family: 'Readex Pro', sans-serif !important;
+  font-family: var(--font-readex), 'Readex Pro', sans-serif !important;
 }
 .font-amiri {
-  font-family: 'Amiri', serif !important;
+  font-family: var(--font-amiri), 'Amiri', serif !important;
 }
 
 :root {
