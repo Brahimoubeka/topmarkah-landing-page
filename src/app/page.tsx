@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { MapPin, Phone, ShoppingCart } from 'lucide-react'
 import { Metadata } from 'next'
@@ -13,6 +14,7 @@ import { Header } from '@/components/landing/Header'
 import { ScrollToTopButton } from '@/components/landing/ScrollToTopButton'
 import { SectionHeading } from '@/components/landing/SectionHeading'
 import { CustomSection } from '@/components/landing/CustomSection'
+import { SectionConnector } from '@/components/landing/SectionConnector'
 import { parseSectionData } from '@/lib/section-config'
 import Script from 'next/script'
 
@@ -202,32 +204,38 @@ export default async function LandingPage() {
       <Header logoUrl={settings?.logo_url} />
 
       {/* ── DYNAMIC SECTIONS IN DISPLAY ORDER ── */}
-      {sections?.map((section) => {
+      {sections?.map((section, index) => {
+        const isAlt = index % 2 === 1
+        const isNotLast = index < (sections?.length || 0) - 1
+
+        let content = null
         switch (section.section_id) {
           case 'hero':
-            return (
+            content = (
               <HeroSection
-                key={section.id}
                 section={section}
                 product={product}
+                isAlt={isAlt}
               />
             )
+            break
 
           case 'offers':
-            return (
+            content = (
               <OffersSection
-                key={section.id}
                 section={section}
                 offers={offers || []}
+                isAlt={isAlt}
               />
             )
+            break
 
           case 'product': {
             const parsedProduct = parseSectionData(section)
             const contentText = parsedProduct.body || product?.description || ''
             const isImageLeft = parsedProduct.imagePosition === 'left'
-            return (
-              <section key={section.id} id="details" className="py-8 sm:py-12 bg-white">
+            content = (
+              <section id="details" className={`py-8 sm:py-12 transition-colors ${isAlt ? 'bg-slate-50/80' : 'bg-white'}`}>
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                   <SectionHeading
                     title={parsedProduct.title || product?.name || 'تفاصيل المنتج'}
@@ -240,7 +248,7 @@ export default async function LandingPage() {
                   {(contentText || parsedProduct.imageUrl) && (
                     <div className="max-w-3xl mx-auto">
                       <div
-                        className={`bg-gray-50/80 p-4 sm:p-8 rounded-2xl sm:rounded-3xl ${
+                        className={`${isAlt ? 'bg-white' : 'bg-slate-50/70'} p-4 sm:p-8 rounded-2xl sm:rounded-3xl ${
                           parsedProduct.imageUrl
                             ? `flex ${isImageLeft ? 'flex-row-reverse' : 'flex-row'} items-start gap-3.5 sm:gap-6`
                             : ''
@@ -248,7 +256,7 @@ export default async function LandingPage() {
                       >
                         {parsedProduct.imageUrl && (
                           <div className="shrink-0">
-                            <div className="w-20 h-20 sm:w-32 sm:h-32 aspect-square rounded-xl sm:rounded-2xl overflow-hidden bg-white">
+                            <div className={`w-20 h-20 sm:w-32 sm:h-32 aspect-square rounded-xl sm:rounded-2xl overflow-hidden ${isAlt ? 'bg-slate-50' : 'bg-white'}`}>
                               <img
                                 src={parsedProduct.imageUrl}
                                 alt={parsedProduct.title || 'Product Image'}
@@ -268,46 +276,55 @@ export default async function LandingPage() {
                 </div>
               </section>
             )
+            break
           }
 
           case 'benefits':
-            return (
+            content = (
               <BenefitsSection
-                key={section.id}
                 section={section}
                 product={product}
+                isAlt={isAlt}
               />
             )
+            break
 
           case 'testimonials':
-            return (
+            content = (
               <TestimonialsSection
-                key={section.id}
                 section={section}
                 testimonials={testimonials || []}
+                isAlt={isAlt}
               />
             )
+            break
 
           case 'faq':
-            return (
+            content = (
               <FaqSection
-                key={section.id}
                 section={section}
                 faqs={faqs || []}
+                isAlt={isAlt}
               />
             )
+            break
 
           case 'delivery':
-            return (
+            content = (
               <DeliverySection
-                key={section.id}
                 section={section}
+                isAlt={isAlt}
               />
             )
+            break
 
           case 'order':
-            return (
-              <section key={section.id} id="order-form" className="py-10 sm:py-14 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
+            content = (
+              <section id="order-form" className={`py-10 sm:py-14 relative overflow-hidden transition-colors ${
+                isAlt 
+                  ? 'bg-gradient-to-b from-slate-100/90 via-slate-50 to-white' 
+                  : 'bg-gradient-to-b from-slate-50 via-white to-slate-50/60'
+              }`}>
                 <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 relative z-10">
                   {section?.title && (
                     <div className="text-center mb-6 sm:mb-8">
@@ -326,15 +343,24 @@ export default async function LandingPage() {
                 </div>
               </section>
             )
+            break
 
           default:
-            return (
+            content = (
               <CustomSection
-                key={section.id}
                 section={section}
+                isAlt={isAlt}
               />
             )
+            break
         }
+
+        return (
+          <Fragment key={section.id}>
+            {content}
+            {isNotLast && <SectionConnector />}
+          </Fragment>
+        )
       })}
 
       {/* ── FOOTER ── */}

@@ -2,7 +2,7 @@ import { CheckCircle2, Sparkles } from 'lucide-react'
 import { SectionHeading } from './SectionHeading'
 import { parseSectionData } from '@/lib/section-config'
 
-export function BenefitsSection({ section, product }: any) {
+export function BenefitsSection({ section, product, isAlt = false }: any) {
   const parsed = parseSectionData(section)
 
   // Use body from landing page config first, or fallback to product benefits
@@ -15,7 +15,7 @@ export function BenefitsSection({ section, product }: any) {
     .filter((l: string) => l.length > 0)
 
   return (
-    <section id="benefits" className="py-8 sm:py-12 bg-gray-50">
+    <section id="benefits" className={`py-8 sm:py-12 transition-colors ${isAlt ? 'bg-slate-50/80' : 'bg-white'}`}>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
           title={parsed.title || 'المواصفات والفوائد'}
@@ -34,7 +34,7 @@ export function BenefitsSection({ section, product }: any) {
               return (
                 <div
                   key={i}
-                  className="bg-white p-4 sm:p-5 rounded-2xl flex items-start gap-3 transition-colors"
+                  className={`${isAlt ? 'bg-white' : 'bg-slate-50/70'} p-4 sm:p-5 rounded-2xl flex items-start gap-3 transition-colors`}
                 >
                   <div className="p-1 rounded-lg bg-emerald-50 text-emerald-600 shrink-0 mt-0.5">
                     <CheckCircle2 className="w-5 h-5" />

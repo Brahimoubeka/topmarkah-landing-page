@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, Star, Quote } from 'lucide-react'
 import { SectionHeading } from './SectionHeading'
 import { parseSectionData, getFontClass } from '@/lib/section-config'
 
-export function TestimonialsSection({ section, testimonials }: any) {
+export function TestimonialsSection({ section, testimonials, isAlt = false }: any) {
   const parsed = parseSectionData(section)
   const fontClass = getFontClass(parsed.fontFamily)
 
@@ -20,7 +20,7 @@ export function TestimonialsSection({ section, testimonials }: any) {
   const next = () => setCurrent(i => (i + 1) % activeTestimonials.length)
 
   return (
-    <section id="testimonials" className="py-6 sm:py-10 bg-white">
+    <section id="testimonials" className={`py-6 sm:py-10 transition-colors ${isAlt ? 'bg-slate-50/80' : 'bg-white'}`}>
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
           title={parsed.title || 'آراء عملائنا'}
@@ -39,7 +39,7 @@ export function TestimonialsSection({ section, testimonials }: any) {
         )}
 
         {/* ── Customer Reviews Image Carousel (Scrolls like product images) ── */}
-        <div className={`bg-gray-50/80 rounded-2xl sm:rounded-3xl p-3 sm:p-6 ${fontClass}`}>
+        <div className={`${isAlt ? 'bg-white' : 'bg-slate-50/80'} rounded-2xl sm:rounded-3xl p-3 sm:p-6 ${fontClass}`}>
           <div className="relative select-none w-full max-w-xl mx-auto">
             {currentItem.image_url ? (
               <div className="relative rounded-xl sm:rounded-2xl overflow-hidden aspect-[4/3] bg-gray-900/5 flex items-center justify-center">

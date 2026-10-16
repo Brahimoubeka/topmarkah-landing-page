@@ -118,7 +118,7 @@ function YouTubeEmbed({ url }: { url: string }) {
   )
 }
 
-export function HeroSection({ section, product }: any) {
+export function HeroSection({ section, product, isAlt = false }: any) {
   const parsed = parseSectionData(section)
   const fontClass = getFontClass(parsed.fontFamily)
 
@@ -134,7 +134,7 @@ export function HeroSection({ section, product }: any) {
   const hasMedia = !!youtubeEntry || images.length > 0
 
   return (
-    <section className="relative overflow-hidden bg-white pt-1.5 pb-6 sm:pt-6 sm:pb-8">
+    <section className={`relative overflow-hidden pt-1.5 pb-6 sm:pt-6 sm:pb-8 transition-colors ${isAlt ? 'bg-slate-50/75' : 'bg-white'}`}>
       <div className="absolute inset-0 bg-[url('https://transparenttextures.com/patterns/cubes.png')] opacity-20 mix-blend-multiply"></div>
       <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-primary/10 opacity-50 blur-3xl"></div>
       <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-secondary/10 opacity-50 blur-3xl"></div>

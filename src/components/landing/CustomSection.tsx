@@ -12,13 +12,13 @@ type Section = {
   is_active: boolean
 }
 
-export function CustomSection({ section }: { section: Section }) {
+export function CustomSection({ section, isAlt = false }: { section: Section; isAlt?: boolean }) {
   const parsed = parseSectionData(section)
   const fontClass = getFontClass(parsed.fontFamily || 'cairo')
   const isImageLeft = parsed.imagePosition === 'left'
 
   return (
-    <section id={section.section_id} className="py-10 sm:py-16 bg-white relative overflow-hidden">
+    <section id={section.section_id} className={`py-10 sm:py-16 relative overflow-hidden transition-colors ${isAlt ? 'bg-slate-50/80' : 'bg-white'}`}>
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
           title={parsed.title}
@@ -32,7 +32,7 @@ export function CustomSection({ section }: { section: Section }) {
         {(parsed.body || parsed.imageUrl) && (
           <div className="max-w-3xl mx-auto">
             <div 
-              className={`bg-gradient-to-br from-gray-50 via-white to-gray-50/50 p-4 sm:p-8 rounded-2xl sm:rounded-3xl ${
+              className={`${isAlt ? 'bg-white' : 'bg-slate-50/70'} p-4 sm:p-8 rounded-2xl sm:rounded-3xl transition-colors ${
                 parsed.imageUrl
                   ? `flex ${isImageLeft ? 'flex-row-reverse' : 'flex-row'} items-start gap-3.5 sm:gap-6`
                   : ''

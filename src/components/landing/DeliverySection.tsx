@@ -2,11 +2,11 @@ import { Truck, Clock, ShieldCheck } from 'lucide-react'
 import { SectionHeading } from './SectionHeading'
 import { parseSectionData } from '@/lib/section-config'
 
-export function DeliverySection({ section }: any) {
+export function DeliverySection({ section, isAlt = false }: any) {
   const parsed = parseSectionData(section)
 
   return (
-    <section id="delivery" className="py-4 sm:py-8 bg-white">
+    <section id="delivery" className={`py-4 sm:py-8 transition-colors ${isAlt ? 'bg-slate-50/80' : 'bg-white'}`}>
       <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8">
         <SectionHeading
           title={parsed.title || 'معلومات التوصيل'}
@@ -19,7 +19,7 @@ export function DeliverySection({ section }: any) {
         />
 
         <div className="grid grid-cols-3 gap-2 sm:gap-6">
-          <div className="text-center p-2 sm:p-4 rounded-xl bg-gray-50/70 sm:bg-transparent flex flex-col items-center">
+          <div className={`text-center p-2 sm:p-4 rounded-xl ${isAlt ? 'bg-white' : 'bg-slate-50/70'} sm:bg-transparent flex flex-col items-center transition-colors`}>
             <div className="w-8 h-8 sm:w-12 sm:h-12 bg-primary/10 text-primary flex items-center justify-center rounded-full mb-1.5 sm:mb-3 shrink-0">
               <Truck className="w-4 h-4 sm:w-6 sm:h-6" />
             </div>

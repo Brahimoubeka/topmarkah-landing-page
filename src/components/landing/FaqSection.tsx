@@ -1,11 +1,11 @@
 import { SectionHeading } from './SectionHeading'
 import { parseSectionData } from '@/lib/section-config'
 
-export function FaqSection({ section, faqs }: any) {
+export function FaqSection({ section, faqs, isAlt = false }: any) {
   const parsed = parseSectionData(section)
 
   return (
-    <section id="faq" className="py-8 sm:py-12 bg-gray-50">
+    <section id="faq" className={`py-8 sm:py-12 transition-colors ${isAlt ? 'bg-slate-50/80' : 'bg-white'}`}>
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <SectionHeading
           title={parsed.title || 'الأسئلة الشائعة'}
@@ -19,7 +19,7 @@ export function FaqSection({ section, faqs }: any) {
         {faqs && faqs.length > 0 && (
           <div className="space-y-2.5">
             {faqs.map((faq: any) => (
-              <details key={faq.id} className="bg-white p-6 rounded-2xl group">
+              <details key={faq.id} className={`${isAlt ? 'bg-white' : 'bg-slate-50/70'} p-6 rounded-2xl group transition-colors`}>
                 <summary className="font-bold text-lg text-gray-900 cursor-pointer list-none flex justify-between items-center">
                   {faq.question}
                   <span className="transition group-open:rotate-180">

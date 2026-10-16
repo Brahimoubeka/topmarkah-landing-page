@@ -86,7 +86,7 @@ function OfferImageSlideshow({ images, alt }: { images: string[]; alt: string })
   )
 }
 
-export function OffersSection({ section, offers }: any) {
+export function OffersSection({ section, offers, isAlt = false }: any) {
   const parsed = parseSectionData(section)
 
   // Strictly sort offers according to admin display_order
@@ -97,7 +97,7 @@ export function OffersSection({ section, offers }: any) {
   })
 
   return (
-    <section id="offers" className="py-6 sm:py-10 bg-gray-50/70">
+    <section id="offers" className={`py-6 sm:py-10 transition-colors ${isAlt ? 'bg-slate-50/80' : 'bg-white'}`}>
       {/* px-0 on mobile so images touch the corners of the screen with 0 margin */}
       <div className="mx-auto max-w-7xl px-0 sm:px-6 lg:px-8">
         <div className="px-4 sm:px-0">
@@ -135,7 +135,7 @@ export function OffersSection({ section, offers }: any) {
               return (
                 <div 
                   key={offer.id} 
-                  className={`bg-white sm:rounded-3xl relative overflow-hidden transition-all duration-300 flex flex-col justify-between ${offerFontClass}`}
+                  className={`${isAlt ? 'bg-white' : 'bg-slate-50/70'} sm:rounded-3xl relative overflow-hidden transition-all duration-300 flex flex-col justify-between ${offerFontClass}`}
                 >
                   {/* Badges */}
                   <div className="absolute top-3 left-3 z-20 flex flex-col gap-1.5 items-start">
