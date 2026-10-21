@@ -30,6 +30,12 @@ export default async function LandingPageConfig() {
     .select('*')
     .order('display_order', { ascending: true })
 
+  const { data: offers } = await supabase
+    .from('offers')
+    .select('*')
+    .order('display_order', { ascending: true })
+    .order('created_at', { ascending: true })
+
   return (
     <div className="space-y-6 max-w-5xl">
       <div>
@@ -54,6 +60,7 @@ export default async function LandingPageConfig() {
           products={products || []}
           testimonials={testimonials || []}
           faqs={faqs || []}
+          offers={offers || []}
         />
       )}
     </div>

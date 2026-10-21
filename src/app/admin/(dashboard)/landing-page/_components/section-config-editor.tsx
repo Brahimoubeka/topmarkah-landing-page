@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { Save, Sparkles, Type, Palette, Eye, ImagePlus, X, Loader2, AlignRight, AlignLeft } from 'lucide-react'
+import { Save, Sparkles, Type, Palette, Eye, ImagePlus, X, Loader2, ArrowUp, ArrowDown } from 'lucide-react'
 import {
   parseSectionData,
   serializeSectionContent,
@@ -57,6 +57,7 @@ export function SectionConfigEditor({
   section,
   saving,
   onSave,
+  offers = [],
 }: {
   section: {
     id: string
@@ -69,6 +70,7 @@ export function SectionConfigEditor({
   }
   saving: boolean
   onSave: (fields: { title: string; subtitle: string; content: string; image_url?: string }) => void
+  offers?: any[]
 }) {
   const parsed = parseSectionData(section)
 
@@ -80,7 +82,8 @@ export function SectionConfigEditor({
   const [fontSize, setFontSize] = useState(parsed.fontSize)
   const [fontFamily, setFontFamily] = useState(parsed.fontFamily)
   const [imageUrl, setImageUrl] = useState(parsed.imageUrl || '')
-  const [imagePosition, setImagePosition] = useState<'right' | 'left'>(parsed.imagePosition || 'right')
+  const [imagePosition, setImagePosition] = useState<'above' | 'below'>(parsed.imagePosition || 'above')
+  const [selectedOfferIds, setSelectedOfferIds] = useState<string[] | undefined>(parsed.selectedOfferIds)
   const [uploadingImage, setUploadingImage] = useState(false)
 
   const supabase = createClient()
@@ -95,7 +98,8 @@ export function SectionConfigEditor({
     setFontSize(updated.fontSize)
     setFontFamily(updated.fontFamily)
     setImageUrl(updated.imageUrl || '')
-    setImagePosition(updated.imagePosition || 'right')
+    setImagePosition(updated.imagePosition || 'above')
+    setSelectedOfferIds(updated.selectedOfferIds)
   }, [section.id, section.content, section.title, section.subtitle, section.image_url])
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -130,6 +134,7 @@ export function SectionConfigEditor({
       fontFamily,
       imageUrl,
       imagePosition,
+      selectedOfferIds,
     })
 
     onSave({
@@ -167,6 +172,98 @@ export function SectionConfigEditor({
           />
         </div>
       </div>
+
+      {/* ── Offers Selection (if section is 'offers' or starts with 'offer') ── */}
+      {(section.section_id === 'offers' || section.section_id.startsWith('offer')) && (
+        <div className="bg-white p-4 rounded-xl border border-blue-200/80 space-y-3 bg-blue-50/20">
+          <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+            <div className="flex items-center gap-2 text-xs font-bold text-gray-800">
+              <span className="text-base">🏷️</span>
+              <span>تحديد العروض المعروضة في هذا القسم (Section Offers Filter)</span>
+            </div>
+            <span className="text-[11px] text-blue-600 font-medium hidden sm:inline">
+              يتيح لك وضع هذا القسم وعرضه بشكل منفصل بين الأقسام
+            </span>
+          </div>
+
+          <div className="space-y-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setSelectedOfferIds(undefined)}
+                className={`p-2.5 rounded-xl border text-xs font-semibold text-start transition-all ${
+                  !selectedOfferIds || selectedOfferIds.length === 0
+                    ? 'border-blue-600 bg-blue-50 text-blue-900 ring-1 ring-blue-500 font-bold'
+                    : 'border-gray-200 hover:bg-gray-50 text-gray-700'
+                }`}
+              >
+                <div>✨ عرض جميع العروض</div>
+                <div className="text-[10px] text-gray-500 font-normal mt-0.5">كل العروض النشطة تظهر معاً في هذا القسم</div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (offers.length > 0 && (!selectedOfferIds || selectedOfferIds.length === 0)) {
+                    setSelectedOfferIds([offers[0].id])
+                  }
+                }}
+                className={`p-2.5 rounded-xl border text-xs font-semibold text-start transition-all ${
+                  selectedOfferIds && selectedOfferIds.length > 0
+                    ? 'border-blue-600 bg-blue-50 text-blue-900 ring-1 ring-blue-500 font-bold'
+                    : 'border-gray-200 hover:bg-gray-50 text-gray-700'
+                }`}
+              >
+                <div>🎯 عرض عرض محدد فقط</div>
+                <div className="text-[10px] text-gray-500 font-normal mt-0.5">اختر عرضاً واحداً ليكون قسماً مستقلاً</div>
+              </button>
+            </div>
+
+            {selectedOfferIds && selectedOfferIds.length > 0 && (
+              <div className="pt-2 border-t border-gray-100 space-y-2">
+                <Label className="text-xs text-gray-600">اختر العرض (أو العروض) المراد إظهارها في هذا القسم:</Label>
+                {offers.length === 0 ? (
+                  <p className="text-xs text-gray-500">لا توجد عروض مضافة بعد في لوحة التحكم.</p>
+                ) : (
+                  <div className="space-y-1.5">
+                    {offers.map((off: any) => {
+                      const isChecked = selectedOfferIds.includes(off.id)
+                      return (
+                        <label
+                          key={off.id}
+                          className={`flex items-center justify-between p-2.5 rounded-lg border cursor-pointer transition-all ${
+                            isChecked
+                              ? 'border-blue-600 bg-blue-50/70 text-blue-950 font-semibold'
+                              : 'border-gray-200 hover:bg-gray-50 text-gray-700'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedOfferIds([...(selectedOfferIds || []), off.id])
+                                } else {
+                                  const next = (selectedOfferIds || []).filter(id => id !== off.id)
+                                  setSelectedOfferIds(next.length === 0 ? undefined : next)
+                                }
+                              }}
+                              className="w-4 h-4 text-blue-600 rounded"
+                            />
+                            <span className="text-xs">{off.name}</span>
+                          </div>
+                          <span className="text-xs font-bold font-mono text-blue-700">{off.price} DA</span>
+                        </label>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ── Typography & Styling Controls ── */}
       <div className="bg-white p-4 rounded-xl border border-gray-200/80 space-y-4">
@@ -332,47 +429,47 @@ export function SectionConfigEditor({
           {/* Position Selector */}
           <div className="space-y-2">
             <Label className="text-xs text-gray-600 font-semibold">
-              موضع الصورة بالنسبة للنص (Inline Image Position)
+              موضع الصورة بالنسبة للفقرة (Image Position)
             </Label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md">
               <button
                 type="button"
-                onClick={() => setImagePosition('right')}
+                onClick={() => setImagePosition('above')}
                 className={`flex items-center gap-3 p-3 rounded-xl border text-start transition-all ${
-                  imagePosition === 'right'
+                  imagePosition === 'above'
                     ? 'border-emerald-600 bg-emerald-50 text-emerald-900 shadow-sm ring-1 ring-emerald-500 font-bold'
                     : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700'
                 }`}
               >
                 <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                  <AlignRight className="w-4 h-4" />
+                  <ArrowUp className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="text-xs font-bold">الصورة على اليمين</div>
-                  <div className="text-[10px] text-gray-500 font-normal">النص بجوارها على اليسار</div>
+                  <div className="text-xs font-bold">الصورة فوق الفقرة (أعلى)</div>
+                  <div className="text-[10px] text-gray-500 font-normal">الصورة 1:1 أولاً ثم النص تحتها</div>
                 </div>
               </button>
 
               <button
                 type="button"
-                onClick={() => setImagePosition('left')}
+                onClick={() => setImagePosition('below')}
                 className={`flex items-center gap-3 p-3 rounded-xl border text-start transition-all ${
-                  imagePosition === 'left'
+                  imagePosition === 'below'
                     ? 'border-emerald-600 bg-emerald-50 text-emerald-900 shadow-sm ring-1 ring-emerald-500 font-bold'
                     : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-700'
                 }`}
               >
                 <div className="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                  <AlignLeft className="w-4 h-4" />
+                  <ArrowDown className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="text-xs font-bold">الصورة على اليسار</div>
-                  <div className="text-[10px] text-gray-500 font-normal">النص بجوارها على اليمين</div>
+                  <div className="text-xs font-bold">الصورة تحت الفقرة (أسفل)</div>
+                  <div className="text-[10px] text-gray-500 font-normal">النص أولاً ثم الصورة 1:1 تحته</div>
                 </div>
               </button>
             </div>
             <p className="text-[11px] text-gray-400">
-              تظهر الصورة بجانب النص مباشرة في جميع الشاشات (الهواتف والكمبيوتر).
+              تظهر الصورة بنسبة 1:1 مربعة وكبيرة مثل صورة المنتج تماماً وبدون أي هوامش جانبية على الهواتف.
             </p>
           </div>
         </div>
@@ -425,21 +522,20 @@ export function SectionConfigEditor({
           )}
 
           {(body || imageUrl) && (
-            <div
-              className={`mt-4 bg-gray-50 p-4 rounded-2xl border border-gray-100 max-w-2xl mx-auto shadow-sm ${
-                imageUrl
-                  ? `flex ${imagePosition === 'left' ? 'flex-row-reverse' : 'flex-row'} items-start gap-3.5 sm:gap-4`
-                  : ''
-              }`}
-            >
-              {imageUrl && (
-                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border-2 border-white shadow-sm shrink-0 bg-white">
+            <div className="mt-4 bg-gray-50 rounded-2xl border border-gray-100 max-w-xl mx-auto shadow-sm overflow-hidden flex flex-col">
+              {imageUrl && imagePosition === 'above' && (
+                <div className="w-full aspect-square bg-gray-100 overflow-hidden">
                   <img src={imageUrl} alt="Thumbnail Preview" className="w-full h-full object-cover" />
                 </div>
               )}
               {body && (
-                <div className={`flex-1 min-w-0 text-sm text-gray-700 whitespace-pre-line leading-relaxed text-start ${selectedFontClass}`}>
+                <div className={`p-4 text-sm text-gray-700 whitespace-pre-line leading-relaxed text-start ${selectedFontClass}`}>
                   {body}
+                </div>
+              )}
+              {imageUrl && imagePosition === 'below' && (
+                <div className="w-full aspect-square bg-gray-100 overflow-hidden">
+                  <img src={imageUrl} alt="Thumbnail Preview" className="w-full h-full object-cover" />
                 </div>
               )}
             </div>

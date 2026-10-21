@@ -18,8 +18,14 @@ const JPEG_QUALITY = 0.82
 const productSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   slug: z.string().min(1, 'Slug is required').regex(/^[a-z0-9-]+$/, 'Invalid slug format (lowercase letters, numbers, and hyphens only)'),
-  price: z.number().min(0, 'Price must be positive'),
-  old_price: z.number().min(0).optional(),
+  price: z.preprocess(
+    (val) => (val === '' || val === null || val === undefined || isNaN(Number(val)) ? 0 : Number(val)),
+    z.number().min(0).optional().default(0)
+  ),
+  old_price: z.preprocess(
+    (val) => (val === '' || val === null || val === undefined || isNaN(Number(val)) ? null : Number(val)),
+    z.number().min(0).optional().nullable()
+  ),
   short_description: z.string().optional(),
   description: z.string().optional(),
   benefits: z.string().optional(),
@@ -185,13 +191,19 @@ export function ProductForm({ initialData, existingMedia = [] }: {
     const supabase = createClient()
 
     try {
+      const sanitizedData = {
+        ...data,
+        price: Number(data.price) || 0,
+        old_price: data.old_price !== null && data.old_price !== undefined && !isNaN(Number(data.old_price)) ? Number(data.old_price) : null,
+      }
+
       let productId = initialData?.id
 
       if (productId) {
-        const { error: dbError } = await supabase.from('products').update(data).eq('id', productId)
+        const { error: dbError } = await supabase.from('products').update(sanitizedData).eq('id', productId)
         if (dbError) throw new Error(dbError.message)
       } else {
-        const { data: created, error: dbError } = await supabase.from('products').insert(data).select().single()
+        const { data: created, error: dbError } = await supabase.from('products').insert(sanitizedData).select().single()
         if (dbError) throw new Error(dbError.message)
         productId = created.id
       }
@@ -386,14 +398,14 @@ export function ProductForm({ initialData, existingMedia = [] }: {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="price">Price (DA) *</Label>
-            <Input id="price" type="number" step="0.01" {...form.register('price', { valueAsNumber: true })} />
+            <Label htmlFor="price">السعر / Price (DA) [اختياري - Optional]</Label>
+            <Input id="price" type="number" step="0.01" {...form.register('price', { valueAsNumber: true })} placeholder="0" />
             {form.formState.errors.price?.message && <p className="text-sm text-red-500">{form.formState.errors.price.message as string}</p>}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="old_price">Old Price (DA) [Optional]</Label>
-            <Input id="old_price" type="number" step="0.01" {...form.register('old_price', { valueAsNumber: true })} />
+            <Label htmlFor="old_price">السعر القديم / Old Price (DA) [اختياري - Optional]</Label>
+            <Input id="old_price" type="number" step="0.01" {...form.register('old_price', { valueAsNumber: true })} placeholder="0" />
           </div>
         </div>
 

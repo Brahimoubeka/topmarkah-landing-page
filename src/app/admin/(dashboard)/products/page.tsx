@@ -52,7 +52,7 @@ export default async function ProductsPage() {
                     {product.name}
                   </td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    {product.price} DA
+                    {product.price > 0 ? `${product.price} DA` : 'اختياري (غير محدد)'}
                   </td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                     <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${

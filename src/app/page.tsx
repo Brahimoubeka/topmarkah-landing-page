@@ -220,57 +220,97 @@ export default async function LandingPage() {
             )
             break
 
-          case 'offers':
+          case 'offers': {
+            const parsedOfferSec = parseSectionData(section)
+            const secOffers = parsedOfferSec.selectedOfferIds && parsedOfferSec.selectedOfferIds.length > 0
+              ? (offers || []).filter(o => parsedOfferSec.selectedOfferIds!.includes(o.id))
+              : (offers || [])
             content = (
               <OffersSection
                 section={section}
-                offers={offers || []}
+                offers={secOffers}
                 isAlt={isAlt}
               />
             )
             break
+          }
 
           case 'product': {
             const parsedProduct = parseSectionData(section)
             const contentText = parsedProduct.body || product?.description || ''
-            const isImageLeft = parsedProduct.imagePosition === 'left'
+            const isImageBelow = parsedProduct.imagePosition === 'below'
             content = (
-              <section id="details" className={`py-8 sm:py-12 transition-colors ${isAlt ? 'bg-slate-50/80' : 'bg-white'}`}>
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                  <SectionHeading
-                    title={parsedProduct.title || product?.name || 'تفاصيل المنتج'}
-                    subtitle={parsedProduct.subtitle}
-                    icon={parsedProduct.icon}
-                    titleColor={parsedProduct.titleColor}
-                    fontSize={parsedProduct.fontSize}
-                    fontFamily={parsedProduct.fontFamily}
-                  />
+              <section id="details" className={`py-8 sm:py-14 transition-colors ${isAlt ? 'bg-slate-50/80' : 'bg-white'}`}>
+                <div className="mx-auto max-w-5xl px-0 sm:px-6 lg:px-8">
+                  <div className="px-4 sm:px-0">
+                    <SectionHeading
+                      title={parsedProduct.title || product?.name || 'تفاصيل المنتج'}
+                      subtitle={parsedProduct.subtitle}
+                      icon={parsedProduct.icon}
+                      titleColor={parsedProduct.titleColor}
+                      fontSize={parsedProduct.fontSize}
+                      fontFamily={parsedProduct.fontFamily}
+                    />
+                  </div>
                   {(contentText || parsedProduct.imageUrl) && (
                     <div className="max-w-3xl mx-auto">
-                      <div
-                        className={`${isAlt ? 'bg-white' : 'bg-slate-50/70'} p-4 sm:p-8 rounded-2xl sm:rounded-3xl ${
-                          parsedProduct.imageUrl
-                            ? `flex ${isImageLeft ? 'flex-row-reverse' : 'flex-row'} items-start gap-3.5 sm:gap-6`
-                            : ''
-                        }`}
-                      >
-                        {parsedProduct.imageUrl && (
-                          <div className="shrink-0">
-                            <div className={`w-20 h-20 sm:w-32 sm:h-32 aspect-square rounded-xl sm:rounded-2xl overflow-hidden ${isAlt ? 'bg-slate-50' : 'bg-white'}`}>
-                              <img
-                                src={parsedProduct.imageUrl}
-                                alt={parsedProduct.title || 'Product Image'}
-                                className="w-full h-full object-cover"
-                              />
+                      {parsedProduct.imageUrl && contentText ? (
+                        <div className={`${isAlt ? 'bg-white' : 'bg-slate-50/70'} overflow-hidden rounded-none sm:rounded-3xl transition-colors flex flex-col shadow-none`}>
+                          {isImageBelow ? (
+                            <>
+                              <div className="p-5 sm:p-8">
+                                <div className="text-gray-700 whitespace-pre-line text-start leading-relaxed text-base sm:text-xl">
+                                  {contentText}
+                                </div>
+                              </div>
+                              <div className="w-full aspect-square bg-gray-100 overflow-hidden select-none">
+                                <img
+                                  src={parsedProduct.imageUrl}
+                                  alt={parsedProduct.title || 'Product Image'}
+                                  className="w-full h-full object-cover"
+                                  loading="lazy"
+                                  decoding="async"
+                                />
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="w-full aspect-square bg-gray-100 overflow-hidden select-none">
+                                <img
+                                  src={parsedProduct.imageUrl}
+                                  alt={parsedProduct.title || 'Product Image'}
+                                  className="w-full h-full object-cover"
+                                  loading="lazy"
+                                  decoding="async"
+                                />
+                              </div>
+                              <div className="p-5 sm:p-8">
+                                <div className="text-gray-700 whitespace-pre-line text-start leading-relaxed text-base sm:text-xl">
+                                  {contentText}
+                                </div>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      ) : parsedProduct.imageUrl ? (
+                        <div className="w-full aspect-square bg-gray-100 overflow-hidden rounded-none sm:rounded-3xl select-none">
+                          <img
+                            src={parsedProduct.imageUrl}
+                            alt={parsedProduct.title || 'Product Image'}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                        </div>
+                      ) : (
+                        <div className="px-4 sm:px-0">
+                          <div className={`${isAlt ? 'bg-white' : 'bg-slate-50/70'} p-5 sm:p-8 rounded-2xl sm:rounded-3xl transition-colors`}>
+                            <div className="text-gray-700 whitespace-pre-line text-start leading-relaxed text-base sm:text-xl">
+                              {contentText}
                             </div>
                           </div>
-                        )}
-                        {contentText && (
-                          <div className="flex-1 min-w-0 text-gray-700 whitespace-pre-line text-start leading-relaxed text-sm sm:text-lg">
-                            {contentText}
-                          </div>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -346,6 +386,20 @@ export default async function LandingPage() {
             break
 
           default:
+            if (section.section_id.startsWith('offer')) {
+              const parsedOfferSec = parseSectionData(section)
+              const secOffers = parsedOfferSec.selectedOfferIds && parsedOfferSec.selectedOfferIds.length > 0
+                ? (offers || []).filter(o => parsedOfferSec.selectedOfferIds!.includes(o.id))
+                : (offers || [])
+              content = (
+                <OffersSection
+                  section={section}
+                  offers={secOffers}
+                  isAlt={isAlt}
+                />
+              )
+              break
+            }
             content = (
               <CustomSection
                 section={section}

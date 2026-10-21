@@ -8,10 +8,10 @@ import { Label } from '@/components/ui/label'
 import { 
   Eye, EyeOff, GripVertical, Save, ExternalLink,
   ChevronDown, ChevronUp, Palette, Plus, Trash2, Star,
-  ImagePlus, Loader2, X, ArrowUp, ArrowDown, Sparkles
+  ImagePlus, Loader2, X, ArrowUp, ArrowDown, Sparkles, Tag, Layers
 } from 'lucide-react'
 import { SectionConfigEditor } from './section-config-editor'
-import { serializeSectionContent } from '@/lib/section-config'
+import { serializeSectionContent, parseSectionData } from '@/lib/section-config'
 
 // ── Image compression using Canvas ──────────────────────────────────────────
 const MAX_WIDTH = 1200
@@ -108,12 +108,13 @@ const SECTION_LABELS: Record<string, string> = {
   order: '🛒 Order Form',
 }
 
-export function LandingPageEditor({ sections, settings, products, testimonials: initialTestimonials, faqs: initialFaqs }: {
+export function LandingPageEditor({ sections, settings, products, testimonials: initialTestimonials, faqs: initialFaqs, offers = [] }: {
   sections: Section[]
   settings: Settings
   products: Product[]
   testimonials: Testimonial[]
   faqs: Faq[]
+  offers?: any[]
 }) {
   const [localSections, setLocalSections] = useState<Section[]>(sections)
   const [localSettings, setLocalSettings] = useState(settings)
@@ -246,6 +247,101 @@ export function LandingPageEditor({ sections, settings, products, testimonials: 
       alert('فشل في إضافة القسم الجديد. يرجى المحاولة مرة أخرى.')
     }
     setIsAddingSection(false)
+  }
+
+  async function addNewOfferSection(offerId?: string) {
+    setIsAddingSection(true)
+    const offerObj = offers.find(o => o.id === offerId)
+    const customId = `offer_${Date.now()}`
+    const newOrder = localSections.length + 1
+    const defaultContent = serializeSectionContent({
+      body: offerObj?.short_description || '',
+      icon: 'Sparkles',
+      titleColor: '#0f172a',
+      fontSize: 'text-2xl sm:text-4xl',
+      fontFamily: 'cairo',
+      selectedOfferIds: offerId ? [offerId] : (offers[0] ? [offers[0].id] : undefined),
+    })
+
+    const newSec = {
+      section_id: customId,
+      title: offerObj?.name ? `عرض: ${offerObj.name}` : 'قسم عرض خاص',
+      subtitle: 'اختر العرض الأنسب لاحتياجاتك',
+      content: defaultContent,
+      is_active: true,
+      display_order: newOrder,
+    }
+
+    const { data, error } = await supabase
+      .from('landing_sections')
+      .insert(newSec)
+      .select()
+      .single()
+
+    if (!error && data) {
+      setLocalSections(prev => [...prev, data as Section])
+      setExpandedSection(data.id)
+    } else {
+      console.error('Failed to add offer section', error)
+      alert('فشل في إضافة قسم العرض. يرجى المحاولة مرة أخرى.')
+    }
+    setIsAddingSection(false)
+  }
+
+  async function splitAllOffersIntoSections() {
+    if (offers.length <= 1) {
+      alert('لديك عرض واحد فقط أو لا توجد عروض كافية للتقسيم.')
+      return
+    }
+    if (!confirm('هل تريد تقسيم عروضك إلى أقسام منفصلة؟ سيمكنك ذلك من وضع أي قسم (صور، نصوص، تفاصيل، آراء...) بين العروض بحرية تامة.')) return
+
+    setIsAddingSection(true)
+    try {
+      const existingOffersSec = localSections.find(s => s.section_id === 'offers')
+
+      if (existingOffersSec && offers[0]) {
+        const updatedContent = serializeSectionContent({
+          body: offers[0].short_description || '',
+          icon: 'Sparkles',
+          titleColor: '#0f172a',
+          fontSize: 'text-2xl sm:text-4xl',
+          fontFamily: 'cairo',
+          selectedOfferIds: [offers[0].id],
+        })
+        await supabase.from('landing_sections').update({
+          title: `عرض: ${offers[0].name}`,
+          content: updatedContent,
+        }).eq('id', existingOffersSec.id)
+      }
+
+      for (let i = 1; i < offers.length; i++) {
+        const off = offers[i]
+        const customId = `offer_${Date.now()}_${i}`
+        const newSec = {
+          section_id: customId,
+          title: `عرض: ${off.name}`,
+          subtitle: 'عرض مميز لفترة محدودة',
+          content: serializeSectionContent({
+            body: off.short_description || '',
+            icon: 'Sparkles',
+            titleColor: '#0f172a',
+            fontSize: 'text-2xl sm:text-4xl',
+            fontFamily: 'cairo',
+            selectedOfferIds: [off.id],
+          }),
+          is_active: true,
+          display_order: localSections.length + i,
+        }
+        await supabase.from('landing_sections').insert(newSec)
+      }
+
+      window.location.reload()
+    } catch (e) {
+      console.error('Split offers error', e)
+      alert('حدث خطأ أثناء تقسيم العروض.')
+    } finally {
+      setIsAddingSection(false)
+    }
   }
 
   async function deleteSection(section: Section) {
@@ -485,7 +581,7 @@ export function LandingPageEditor({ sections, settings, products, testimonials: 
           </div>
 
           {/* Section Header Controls & Add Button */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
             <div>
               <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
                 <span>أقسام صفحة الهبوط وترتيبها</span>
@@ -494,24 +590,53 @@ export function LandingPageEditor({ sections, settings, products, testimonials: 
                 </span>
               </h2>
               <p className="text-xs text-gray-500 mt-1">
-                يمكنك إعادة ترتيب أي قسم بالأسهم (⬆️ ⬇️)، التحكم بالظهور، وتعديل العناوين والألوان والخطوط والمحتوى بحرية تامة.
+                يمكنك إعادة ترتيب أي قسم بالأسهم (⬆️ ⬇️)، وضع أي أقسام بين العروض، والتحكم بالظهور والألوان والخطوط.
               </p>
             </div>
-            <Button
-              type="button"
-              onClick={addNewSection}
-              disabled={isAddingSection}
-              className="gap-2 shrink-0 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs h-9 shadow-sm"
-            >
-              {isAddingSection ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-              <span>إضافة قسم جديد (Add Section)</span>
-            </Button>
+            
+            <div className="flex flex-wrap items-center gap-2">
+              {offers.length > 1 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={splitAllOffersIntoSections}
+                  disabled={isAddingSection}
+                  className="gap-1.5 shrink-0 border-blue-200 text-blue-700 hover:bg-blue-50 font-semibold text-xs h-9 shadow-sm"
+                  title="تقسيم كل العروض في أقسام مستقلة لتتمكن من وضع أقسام بينها"
+                >
+                  <Layers className="w-3.5 h-3.5" />
+                  <span>⚡ تقسيم العروض لأقسام منفصلة</span>
+                </Button>
+              )}
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => addNewOfferSection()}
+                disabled={isAddingSection}
+                className="gap-1.5 shrink-0 border-emerald-200 text-emerald-700 hover:bg-emerald-50 font-semibold text-xs h-9 shadow-sm"
+              >
+                <Tag className="w-3.5 h-3.5" />
+                <span>إضافة قسم عرض (Add Offer)</span>
+              </Button>
+
+              <Button
+                type="button"
+                onClick={addNewSection}
+                disabled={isAddingSection}
+                className="gap-1.5 shrink-0 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs h-9 shadow-sm"
+              >
+                {isAddingSection ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                <span>إضافة قسم مخصص (Add Section)</span>
+              </Button>
+            </div>
           </div>
 
           {/* Section List */}
           <div className="space-y-3">
             {localSections.map((section, index) => {
-              const isCustom = section.section_id.startsWith('custom_')
+              const isCustom = section.section_id.startsWith('custom_') || section.section_id.startsWith('offer_')
+              const isOfferSection = section.section_id.startsWith('offer_')
               const sectionLabel = SECTION_LABELS[section.section_id] || section.title || section.section_id
 
               return (
@@ -550,9 +675,13 @@ export function LandingPageEditor({ sections, settings, products, testimonials: 
 
                     <div className="flex-1 min-w-0 flex items-center gap-2">
                       <span className="font-semibold text-sm text-gray-800 truncate">
-                        {isCustom ? `✨ ${section.title || 'قسم مخصص'}` : sectionLabel}
+                        {isOfferSection ? `🏷️ ${section.title || 'عرض مستقل'}` : isCustom ? `✨ ${section.title || 'قسم مخصص'}` : sectionLabel}
                       </span>
-                      {isCustom ? (
+                      {isOfferSection ? (
+                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 shrink-0">
+                          عرض مستقل Offer
+                        </span>
+                      ) : isCustom ? (
                         <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 shrink-0">
                           مخصص Custom
                         </span>
@@ -607,6 +736,7 @@ export function LandingPageEditor({ sections, settings, products, testimonials: 
                       section={section}
                       saving={saving === section.id}
                       onSave={(fields) => saveSectionCustom(section.id, fields)}
+                      offers={offers}
                     />
                   )}
                 </div>

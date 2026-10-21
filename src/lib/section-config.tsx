@@ -27,7 +27,8 @@ export interface SectionStyleConfig {
   fontSize: string
   fontFamily: string
   imageUrl?: string
-  imagePosition?: 'right' | 'left'
+  imagePosition?: 'above' | 'below'
+  selectedOfferIds?: string[]
 }
 
 export const ARABIC_FONTS = [
@@ -101,7 +102,8 @@ export function parseSectionData(section: any): SectionStyleConfig {
   let fontSize = 'text-2xl sm:text-4xl'
   let fontFamily = 'cairo'
   let imageUrl = section?.image_url || ''
-  let imagePosition: 'right' | 'left' = 'right'
+  let imagePosition: 'above' | 'below' = 'above'
+  let selectedOfferIds: string[] | undefined = undefined
 
   if (section?.content) {
     const trimmed = String(section.content).trim()
@@ -114,7 +116,14 @@ export function parseSectionData(section: any): SectionStyleConfig {
         fontSize = parsed.fontSize || 'text-2xl sm:text-4xl'
         fontFamily = parsed.fontFamily || 'cairo'
         if (parsed.imageUrl !== undefined) imageUrl = parsed.imageUrl
-        if (parsed.imagePosition) imagePosition = parsed.imagePosition
+        if (parsed.imagePosition === 'below' || parsed.imagePosition === 'left' || parsed.imagePosition === 'bottom') {
+          imagePosition = 'below'
+        } else {
+          imagePosition = 'above'
+        }
+        if (Array.isArray(parsed.selectedOfferIds)) {
+          selectedOfferIds = parsed.selectedOfferIds
+        }
       } catch (e) {
         // Fallback to raw string
       }
@@ -131,6 +140,7 @@ export function parseSectionData(section: any): SectionStyleConfig {
     fontFamily,
     imageUrl,
     imagePosition,
+    selectedOfferIds,
   }
 }
 
@@ -141,7 +151,8 @@ export function serializeSectionContent(params: {
   fontSize?: string
   fontFamily?: string
   imageUrl?: string
-  imagePosition?: 'right' | 'left'
+  imagePosition?: 'above' | 'below'
+  selectedOfferIds?: string[]
 }): string {
   return JSON.stringify({
     body: params.body || '',
@@ -150,7 +161,8 @@ export function serializeSectionContent(params: {
     fontSize: params.fontSize || 'text-2xl sm:text-4xl',
     fontFamily: params.fontFamily || 'cairo',
     imageUrl: params.imageUrl || '',
-    imagePosition: params.imagePosition || 'right',
+    imagePosition: params.imagePosition || 'above',
+    selectedOfferIds: params.selectedOfferIds || undefined,
   })
 }
 
