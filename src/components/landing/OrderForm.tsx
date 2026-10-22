@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useActionState } from 'react'
 import { submitOrder } from '@/app/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { CheckCircle2, Truck, Package, Phone, User, MapPin, ChevronDown, ChevronUp, Sparkles, Gift } from 'lucide-react'
-import { getOfferFirstImage, parseOfferData } from '@/lib/offer-helper'
+import { getOfferFirstImage, parseOfferData, OfferFeatureIcon } from '@/lib/offer-helper'
 
 export function OrderForm({ offers, wilayas, deliveryPrices, defaultCompanyId }: any) {
   const [state, formAction, isPending] = useActionState(submitOrder, null)
@@ -21,9 +21,32 @@ export function OrderForm({ offers, wilayas, deliveryPrices, defaultCompanyId }:
   const [calculatedTotal, setCalculatedTotal] = useState<number>(0)
   const [deliveryCost, setDeliveryCost] = useState<number>(0)
 
+  const customerNameInputRef = useRef<HTMLInputElement>(null)
+  const [isNameHighlighted, setIsNameHighlighted] = useState(false)
+
+  const handleSelectOfferCard = (offerId: string) => {
+    setSelectedOffer(offerId)
+    if (customerNameInputRef.current) {
+      customerNameInputRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      setTimeout(() => {
+        customerNameInputRef.current?.focus({ preventScroll: true })
+        setIsNameHighlighted(true)
+        setTimeout(() => setIsNameHighlighted(false), 2400)
+      }, 350)
+    }
+  }
+
   useEffect(() => {
     const handleSelectOffer = (e: any) => {
       setSelectedOffer(e.detail)
+      if (customerNameInputRef.current) {
+        customerNameInputRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        setTimeout(() => {
+          customerNameInputRef.current?.focus({ preventScroll: true })
+          setIsNameHighlighted(true)
+          setTimeout(() => setIsNameHighlighted(false), 2400)
+        }, 400)
+      }
     }
     window.addEventListener('selectOffer', handleSelectOffer)
     return () => window.removeEventListener('selectOffer', handleSelectOffer)
@@ -100,142 +123,201 @@ export function OrderForm({ offers, wilayas, deliveryPrices, defaultCompanyId }:
         <div className="space-y-4">
           <Label className="text-base font-semibold text-gray-900 flex items-center"><Package className="w-4 h-4 mr-2 text-primary" /> اختر العرض</Label>
           <div className="grid gap-4 sm:grid-cols-2">
-            {offers.map((offer: any) => (
-              <div 
-                key={offer.id} 
-                onClick={() => setSelectedOffer(offer.id)}
-                className={`cursor-pointer rounded-xl border-2 p-4 transition-all duration-200 flex flex-col ${
-                  selectedOffer === offer.id 
-                    ? 'border-blue-600 bg-primary/5/50 shadow-sm ring-1 ring-primary/10' 
-                    : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50'
-                }`}
-              >
-                <input 
-                  type="radio" 
-                  name="offer_id" 
-                  value={offer.id} 
-                  checked={selectedOffer === offer.id}
-                  readOnly
-                  className="sr-only" 
-                />
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex items-start gap-3">
-                    {(() => {
-                      const offerImg = getOfferFirstImage(offer)
-                      return offerImg ? (
-                        <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-gray-100 border border-gray-200 mt-0.5">
-                          <img src={offerImg} alt={offer.name} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+            {offers.map((offer: any) => {
+              const oData = parseOfferData(offer)
+              const offerImg = getOfferFirstImage(offer)
+              const badgeText = oData.badgeText || (offer.discount > 0 ? `تخفيض ${offer.discount}%` : null)
+              const isSelected = selectedOffer === offer.id
+
+              return (
+                <div 
+                  key={offer.id} 
+                  onClick={() => handleSelectOfferCard(offer.id)}
+                  className={`cursor-pointer rounded-2xl border-2 p-4 sm:p-5 transition-all duration-300 flex flex-col justify-between ${
+                    isSelected 
+                      ? 'border-blue-600 bg-blue-50/25 shadow-md ring-2 ring-blue-500/20' 
+                      : 'border-gray-200/80 hover:border-blue-300 hover:bg-gray-50/60 shadow-xs'
+                  }`}
+                >
+                  <input 
+                    type="radio" 
+                    name="offer_id" 
+                    value={offer.id} 
+                    checked={isSelected}
+                    readOnly
+                    className="sr-only" 
+                  />
+                  <div>
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex items-start gap-3">
+                        {offerImg ? (
+                          <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-gray-100 border border-gray-200 shadow-xs mt-0.5">
+                            <img src={offerImg} alt={offer.name} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                          </div>
+                        ) : null}
+                        <div>
+                          <span className="font-bold text-gray-900 leading-tight block text-base">{offer.name}</span>
+                          
+                          {/* Offer Badges / Tags */}
+                          <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                            {oData.isFreeDelivery && (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 shadow-xs animate-pulse">
+                                <Truck className="w-3 h-3 text-emerald-600" />
+                                <span>توصيل مجاني</span>
+                              </span>
+                            )}
+                            {offer.gifts && (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                <span>🎁 {offer.gifts}</span>
+                              </span>
+                            )}
+                            {badgeText && (
+                              <span 
+                                className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold text-white shadow-xs"
+                                style={oData.badgeColor ? { backgroundColor: oData.badgeColor } : { backgroundColor: '#dc2626' }}
+                              >
+                                <Sparkles className="w-2.5 h-2.5 text-white" />
+                                <span>{badgeText}</span>
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      ) : null
-                    })()}
-                    <div>
-                      <span className="font-bold text-gray-900 leading-tight block">{offer.name}</span>
-                      
-                      {/* Offer Badges / Tags (Gift, Free Delivery, Discount) */}
-                      <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-                        {(() => {
-                          const oData = parseOfferData(offer)
-                          const badgeText = oData.badgeText || (offer.discount > 0 ? `تخفيض ${offer.discount}%` : null)
-                          return (
-                            <>
-                              {oData.isFreeDelivery && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 shadow-xs animate-pulse">
-                                  <Truck className="w-3 h-3 text-emerald-600" />
-                                  <span>توصيل مجاني</span>
-                                </span>
-                              )}
-                              {offer.gifts && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                                  <span>🎁 {offer.gifts}</span>
-                                </span>
-                              )}
-                              {badgeText && (
-                                <span 
-                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold text-white shadow-xs"
-                                  style={oData.badgeColor ? { backgroundColor: oData.badgeColor } : { backgroundColor: '#dc2626' }}
-                                >
-                                  <Sparkles className="w-2.5 h-2.5 text-white" />
-                                  <span>{badgeText}</span>
-                                </span>
-                              )}
-                            </>
-                          )
-                        })()}
                       </div>
+                      {isSelected && (
+                        <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                          <CheckCircle2 className="w-4 h-4 text-white" />
+                        </div>
+                      )}
                     </div>
-                  </div>
-                  {selectedOffer === offer.id && <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-1" />}
-                </div>
-                
-                <div className="flex justify-between items-end mt-auto pt-4">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-xl font-bold text-primary glow-price">{offer.price} DA</span>
-                    {offer.old_price > 0 && <span className="text-sm text-gray-400 line-through mr-2">{offer.old_price} DA</span>}
+
+                    {/* Features list with icons right on the offer card */}
+                    {oData.featuresList && oData.featuresList.length > 0 && (
+                      <ul className="mt-3 space-y-1.5 text-xs text-gray-700 pt-2.5 border-t border-gray-100">
+                        {oData.featuresList.map((f, i) => (
+                          <li key={f.id || i} className="flex items-start gap-2 leading-snug">
+                            <span className="shrink-0 mt-0.5">
+                              <OfferFeatureIcon
+                                icon={f.icon || 'check-circle'}
+                                className="w-3.5 h-3.5 text-emerald-500"
+                                style={oData.featuresIconColor ? { color: oData.featuresIconColor } : {}}
+                              />
+                            </span>
+                            <span className="font-medium text-gray-800">{f.text}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+
+                    {/* Additional Notes & Description (الملاحظات والشرح الإضافي) */}
+                    {offer.full_description && (
+                      <p className="mt-2 text-xs text-gray-500 leading-relaxed border-t border-gray-100 pt-2 whitespace-pre-line text-start">
+                        {offer.full_description}
+                      </p>
+                    )}
                   </div>
                   
-                  <button 
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setExpandedOffer(expandedOffer === offer.id ? null : offer.id)
-                    }}
-                    className="text-xs flex items-center gap-1 text-gray-500 hover:text-primary transition-colors bg-white px-2 py-1 rounded-md border border-gray-200"
-                  >
-                    تفاصيل العرض
-                    {expandedOffer === offer.id ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                  </button>
-                </div>
-
-                {expandedOffer === offer.id && (
-                  <div className="mt-4 pt-4 border-t border-gray-200/60 text-sm space-y-2 animate-in slide-in-from-top-2 fade-in duration-200">
-                    <p className="text-gray-600 whitespace-pre-line text-start">{offer.short_description}</p>
-                    <ul className="space-y-2 mt-3">
-                      <li className="flex items-center text-gray-700">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-500 ml-2 shrink-0" />
-                        <span>الكمية: {offer.quantity_included}</span>
-                      </li>
-                      {offer.gifts && (
-                        <li className="flex items-center text-gray-700">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-500 ml-2 shrink-0" />
-                          <span>الهدايا: {offer.gifts}</span>
-                        </li>
+                  <div className="flex justify-between items-end mt-4 pt-3 border-t border-gray-100/90">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-2xl font-black text-primary glow-price">{offer.price} DA</span>
+                      {offer.old_price > 0 && (
+                        <span className="text-sm font-bold text-red-500 line-through decoration-red-500/80 mr-2">
+                          {offer.old_price} DA
+                        </span>
                       )}
-                      {offer.full_description && (
-                        <li className="flex items-center text-gray-700">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-500 ml-2 shrink-0" />
-                          <span>{offer.full_description}</span>
-                        </li>
-                      )}
-                    </ul>
+                    </div>
+                    
+                    <button 
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setExpandedOffer(expandedOffer === offer.id ? null : offer.id)
+                      }}
+                      className="text-xs flex items-center gap-1 text-gray-500 hover:text-primary transition-colors bg-white px-2.5 py-1 rounded-lg border border-gray-200 font-medium"
+                    >
+                      تفاصيل
+                      {expandedOffer === offer.id ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                    </button>
                   </div>
-                )}
-              </div>
-            ))}
+
+                  {expandedOffer === offer.id && (
+                    <div className="mt-3 pt-3 border-t border-gray-200/60 text-xs space-y-2 animate-in slide-in-from-top-2 fade-in duration-200 bg-gray-50/70 p-3 rounded-xl">
+                      {offer.short_description && (
+                        <p className="text-gray-600 whitespace-pre-line text-start leading-relaxed">{offer.short_description}</p>
+                      )}
+                      <ul className="space-y-1.5 pt-1 text-xs">
+                        <li className="flex items-center text-gray-700">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 ml-1.5 shrink-0" />
+                          <span>الكمية: {offer.quantity_included}</span>
+                        </li>
+                        {offer.gifts && (
+                          <li className="flex items-center text-gray-700">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 ml-1.5 shrink-0" />
+                            <span>الهدايا: {offer.gifts}</span>
+                          </li>
+                        )}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
           </div>
         </div>
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-          {/* Customer Info */}
+          {/* Customer Info with Smooth Highlight */}
           <div className="space-y-2">
-            <Label htmlFor="customer_name" className="text-gray-700 font-medium flex items-center"><User className="w-4 h-4 mr-2 text-secondary" /> الاسم الكامل</Label>
-            <Input id="customer_name" name="customer_name" required className="h-12 bg-gray-50/50 border-gray-200 focus:bg-white focus:ring-blue-500 transition-colors rounded-xl" placeholder="الاسم واللقب" />
+            <div className="flex items-center justify-between">
+              <Label htmlFor="customer_name" className="text-gray-700 font-medium flex items-center">
+                <User className="w-4 h-4 mr-2 text-secondary" /> الاسم الكامل
+              </Label>
+              {isNameHighlighted && (
+                <span className="text-[11px] font-bold text-blue-700 bg-blue-100 px-2.5 py-0.5 rounded-full border border-blue-200 animate-pulse">
+                  👈 اكتب معلوماتك هنا لإتمام الطلب
+                </span>
+              )}
+            </div>
+            <Input
+              ref={customerNameInputRef}
+              id="customer_name"
+              name="customer_name"
+              required
+              className={`h-12 bg-gray-50/50 border-gray-200 text-base sm:text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all duration-300 rounded-xl ${
+                isNameHighlighted
+                  ? 'ring-4 ring-blue-500/50 border-blue-600 bg-blue-50/40 shadow-lg scale-[1.01]'
+                  : ''
+              }`}
+              placeholder="الاسم واللقب"
+            />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="phone" className="text-gray-700 font-medium flex items-center"><Phone className="w-4 h-4 mr-2 text-secondary" /> رقم الهاتف</Label>
-            <Input id="phone" name="phone" type="tel" required className="h-12 bg-gray-50/50 border-gray-200 focus:bg-white focus:ring-blue-500 transition-colors rounded-xl text-left" dir="ltr" placeholder="05..." />
+            <Label htmlFor="phone" className="text-gray-700 font-medium flex items-center">
+              <Phone className="w-4 h-4 mr-2 text-secondary" /> رقم الهاتف
+            </Label>
+            <Input
+              id="phone"
+              name="phone"
+              type="tel"
+              required
+              className="h-12 bg-gray-50/50 border-gray-200 focus:bg-white focus:ring-2 focus:ring-blue-500 transition-colors rounded-xl text-left text-base sm:text-sm"
+              dir="ltr"
+              placeholder="05..."
+            />
           </div>
 
           {/* Delivery Info */}
           <div className="space-y-2">
-            <Label htmlFor="wilaya_id" className="text-gray-700 font-medium flex items-center"><MapPin className="w-4 h-4 mr-2 text-secondary" /> الولاية</Label>
+            <Label htmlFor="wilaya_id" className="text-gray-700 font-medium flex items-center">
+              <MapPin className="w-4 h-4 mr-2 text-secondary" /> الولاية
+            </Label>
             <select
               id="wilaya_id"
               name="wilaya_id"
               required
               value={selectedWilaya}
               onChange={(e) => setSelectedWilaya(e.target.value)}
-              className="flex h-12 w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+              className="flex h-12 w-full rounded-xl border border-gray-200 bg-gray-50/50 px-3 py-2 text-base sm:text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
             >
               <option value="">اختر الولاية...</option>
               {wilayas.map((w: any) => (
@@ -245,10 +327,12 @@ export function OrderForm({ offers, wilayas, deliveryPrices, defaultCompanyId }:
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="quantity" className="text-gray-700 font-medium flex items-center"><Package className="w-4 h-4 mr-2 text-secondary" /> الكمية</Label>
+            <Label htmlFor="quantity" className="text-gray-700 font-medium flex items-center">
+              <Package className="w-4 h-4 mr-2 text-secondary" /> الكمية
+            </Label>
             <div className="flex items-center h-12 border border-gray-200 rounded-xl overflow-hidden bg-gray-50/50">
               <button type="button" onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-4 py-2 hover:bg-gray-100 text-gray-600 transition-colors h-full">-</button>
-              <Input type="number" id="quantity" name="quantity" min="1" value={quantity} onChange={(e) => setQuantity(parseInt(e.target.value) || 1)} className="border-0 bg-transparent text-center h-full focus-visible:ring-0 rounded-none w-full" />
+              <Input type="number" id="quantity" name="quantity" min="1" value={quantity} onChange={(e) => setQuantity(parseInt(e.target.value) || 1)} className="border-0 bg-transparent text-center h-full focus-visible:ring-0 rounded-none w-full text-base sm:text-sm" />
               <button type="button" onClick={() => setQuantity(quantity + 1)} className="px-4 py-2 hover:bg-gray-100 text-gray-600 transition-colors h-full">+</button>
             </div>
           </div>

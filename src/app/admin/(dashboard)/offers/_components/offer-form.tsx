@@ -9,8 +9,29 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { createClient } from '@/lib/supabase/client'
-import { ImagePlus, Trash2, Loader2, Palette, Type, Sparkles, Truck } from 'lucide-react'
-import { parseOfferData, serializeOfferData } from '@/lib/offer-helper'
+import {
+  ImagePlus,
+  Trash2,
+  Loader2,
+  Palette,
+  Type,
+  Sparkles,
+  Truck,
+  Plus,
+  Sliders,
+  CheckCircle2,
+  ListPlus,
+  Eye,
+  RotateCcw,
+} from 'lucide-react'
+import {
+  parseOfferData,
+  serializeOfferData,
+  OfferFeatureItem,
+  OfferFeatureIcon,
+  OFFER_FEATURE_ICONS,
+  OFFER_FEATURES_SIZE_PRESETS,
+} from '@/lib/offer-helper'
 import { ARABIC_FONTS, PRESET_COLORS, getFontClass } from '@/lib/section-config'
 
 const MAX_OFFER_IMAGES = 5
@@ -84,9 +105,50 @@ export function OfferForm({ initialData }: { initialData?: any }) {
   const [titleColor, setTitleColor] = useState<string>(initialParsed.titleColor || '')
   const [buttonColor, setButtonColor] = useState<string>(initialParsed.buttonColor || '')
   const [badgeColor, setBadgeColor] = useState<string>(initialParsed.badgeColor || '')
+  const [borderColor, setBorderColor] = useState<string>(initialParsed.borderColor || '')
   const [badgeText, setBadgeText] = useState<string>(initialParsed.badgeText || '')
   const [buttonText, setButtonText] = useState<string>(initialParsed.buttonText || '')
   const [isFreeDelivery, setIsFreeDelivery] = useState<boolean>(initialParsed.isFreeDelivery || false)
+
+  // Features / Includes List & Sizing
+  const [featuresList, setFeaturesList] = useState<OfferFeatureItem[]>(() => {
+    if (initialParsed.featuresList && initialParsed.featuresList.length > 0) {
+      return initialParsed.featuresList
+    }
+    if (initialData?.full_description) {
+      const lines = String(initialData.full_description).split('\n').map(l => l.trim()).filter(Boolean)
+      if (lines.length > 0) {
+        return lines.map((line, i) => ({
+          id: String(i + 1),
+          text: line.replace(/^[•\-\*✓✔\d\.\)]\s*/, ''),
+          icon: 'check-circle',
+        }))
+      }
+    }
+    return [
+      { id: '1', text: '', icon: 'check-circle' }
+    ]
+  })
+  const [featuresSize, setFeaturesSize] = useState<number>(initialParsed.featuresSize || 14)
+  const [featuresIconColor, setFeaturesIconColor] = useState<string>(initialParsed.featuresIconColor || '#10b981')
+
+  function handleAddFeature() {
+    setFeaturesList(prev => [
+      ...prev,
+      { id: Date.now().toString(), text: '', icon: 'check-circle' }
+    ])
+  }
+
+  function handleUpdateFeature(id: string, updates: Partial<OfferFeatureItem>) {
+    setFeaturesList(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item))
+  }
+
+  function handleRemoveFeature(id: string) {
+    setFeaturesList(prev => {
+      const filtered = prev.filter(item => item.id !== id)
+      return filtered.length === 0 ? [{ id: Date.now().toString(), text: '', icon: 'check-circle' }] : filtered
+    })
+  }
 
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -183,20 +245,25 @@ export function OfferForm({ initialData }: { initialData?: any }) {
 
       const allImages = [...existingImages, ...uploadedUrls].slice(0, MAX_OFFER_IMAGES)
 
-      // Serialize metadata (images + styling freedom)
+      // Serialize metadata (images + styling freedom + features list & size)
       const serializedImageUrl = serializeOfferData({
         images: allImages,
         titleColor,
         buttonColor,
         badgeColor,
+        borderColor,
         fontFamily,
         badgeText,
         buttonText,
         isFreeDelivery,
+        featuresList: featuresList.filter(f => f.text.trim().length > 0),
+        featuresSize,
+        featuresIconColor,
       })
 
       const submitData = {
         ...data,
+        full_description: data.full_description || featuresList.map(f => f.text).filter(Boolean).join('\n'),
         image_url: serializedImageUrl,
       }
 
@@ -245,7 +312,7 @@ export function OfferForm({ initialData }: { initialData?: any }) {
               </span>
             </Label>
             <p className="text-xs text-gray-500 mt-1">
-              بنفس مقاسات وأبعاد صور المنتج (Aspect Ratio 4:3) مع إمكانية التنقل بين الصور تلقائياً أو بالسحب.
+              بأبعاد مربعة 1:1 (Aspect Ratio 1:1 Square) مع إمكانية التنقل بين الصور تلقائياً أو بالسحب.
             </p>
           </div>
         </div>
@@ -262,7 +329,7 @@ export function OfferForm({ initialData }: { initialData?: any }) {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
           {/* Existing Images */}
           {existingImages.map((src, index) => (
-            <div key={`existing-${index}`} className="relative aspect-[4/3] rounded-xl overflow-hidden border bg-gray-50 group shadow-sm">
+            <div key={`existing-${index}`} className="relative aspect-square rounded-xl overflow-hidden border bg-gray-50 group shadow-sm">
               <img src={src} alt={`Offer image ${index + 1}`} className="w-full h-full object-cover" />
               <div className="absolute top-1.5 left-1.5 bg-black/60 text-white text-[10px] font-bold px-1.5 py-0.5 rounded backdrop-blur-sm">
                 #{index + 1}
@@ -282,7 +349,7 @@ export function OfferForm({ initialData }: { initialData?: any }) {
 
           {/* Pending Images */}
           {pendingImages.map((item, index) => (
-            <div key={`pending-${index}`} className="relative aspect-[4/3] rounded-xl overflow-hidden border-2 border-dashed border-blue-400 bg-blue-50/40 group shadow-sm">
+            <div key={`pending-${index}`} className="relative aspect-square rounded-xl overflow-hidden border-2 border-dashed border-blue-400 bg-blue-50/40 group shadow-sm">
               <img src={item.previewUrl} alt="Pending" className="w-full h-full object-cover" />
               <div className="absolute top-1.5 left-1.5 bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
                 جديدة #{existingImages.length + index + 1}
@@ -304,7 +371,7 @@ export function OfferForm({ initialData }: { initialData?: any }) {
           {totalImagesCount < MAX_OFFER_IMAGES && (
             <div
               onClick={() => fileInputRef.current?.click()}
-              className="flex flex-col items-center justify-center aspect-[4/3] border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 text-gray-500 hover:text-blue-600 hover:border-blue-500 hover:bg-blue-50/50 transition-colors cursor-pointer"
+              className="flex flex-col items-center justify-center aspect-square border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 text-gray-500 hover:text-blue-600 hover:border-blue-500 hover:bg-blue-50/50 transition-colors cursor-pointer"
             >
               <ImagePlus className="w-6 h-6 mb-1 text-gray-400" />
               <span className="text-xs font-semibold">إضافة صورة</span>
@@ -321,7 +388,7 @@ export function OfferForm({ initialData }: { initialData?: any }) {
           <h3 className="font-bold text-gray-900 text-base">تخصيص ألوان وخطوط العرض (Offer Custom Styling)</h3>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {/* Arabic Font */}
           <div className="space-y-1.5">
             <Label className="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
@@ -393,6 +460,25 @@ export function OfferForm({ initialData }: { initialData?: any }) {
                 value={badgeColor}
                 onChange={e => setBadgeColor(e.target.value)}
                 placeholder="#dc2626 (أحمر)"
+                className="h-9 text-xs font-mono bg-white"
+              />
+            </div>
+          </div>
+
+          {/* Card Border Line Color */}
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold text-gray-700">الخط الملون / إطار البطاقة</Label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={borderColor || '#2563eb'}
+                onChange={e => setBorderColor(e.target.value)}
+                className="w-8 h-8 rounded border p-0.5 cursor-pointer bg-white"
+              />
+              <Input
+                value={borderColor}
+                onChange={e => setBorderColor(e.target.value)}
+                placeholder="#2563eb (إطار البطاقة)"
                 className="h-9 text-xs font-mono bg-white"
               />
             </div>
@@ -473,13 +559,238 @@ export function OfferForm({ initialData }: { initialData?: any }) {
           <Input id="gifts" {...form.register('gifts')} />
         </div>
 
+        {/* ── OFFER INCLUDES & FEATURES LIST BUILDER ── */}
+        <div className="rounded-2xl border-2 border-emerald-200/80 bg-gradient-to-br from-emerald-50/40 via-white to-blue-50/30 p-5 space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-emerald-100 pb-3 gap-2">
+            <div className="flex items-center gap-2">
+              <ListPlus className="w-5 h-5 text-emerald-600" />
+              <div>
+                <h3 className="font-bold text-gray-900 text-base">
+                  قائمة محتويات ومميزات العرض (ماذا يتضمن العرض؟ - Offer Includes)
+                </h3>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  أضف عناصر واضحة بجانبها أيقونة صح أو هدية أو حماية ليرى الزائر فوراً كل ما يحتويه العرض.
+                </p>
+              </div>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleAddFeature}
+              className="rounded-xl border-dashed border-emerald-300 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-500 gap-1.5 shrink-0 self-start sm:self-center bg-white"
+            >
+              <Plus className="w-4 h-4" />
+              <span>إضافة عنصر / ميزة +</span>
+            </Button>
+          </div>
+
+          {/* ── SIZE & ICON COLOR CONTROLS ── */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-xl bg-white border border-emerald-100 shadow-xs">
+            {/* Features Font Size Slider */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
+                  <Sliders className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>حجم خط قائمة المحتويات (Features Font Size)</span>
+                </Label>
+                <span className="font-mono text-xs font-bold text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded border border-emerald-300">
+                  {featuresSize}px
+                </span>
+              </div>
+              <input
+                type="range"
+                min="11"
+                max="24"
+                step="1"
+                value={featuresSize}
+                onChange={e => setFeaturesSize(Number(e.target.value))}
+                className="w-full h-2 bg-emerald-100 rounded-lg appearance-none cursor-pointer accent-emerald-600"
+              />
+              <div className="flex flex-wrap gap-1">
+                {OFFER_FEATURES_SIZE_PRESETS.map(p => (
+                  <button
+                    key={p.size}
+                    type="button"
+                    onClick={() => setFeaturesSize(p.size)}
+                    className={`text-[10px] px-2 py-1 rounded-md border transition-all ${
+                      featuresSize === p.size
+                        ? 'bg-emerald-600 text-white border-emerald-600 font-bold shadow-xs'
+                        : 'bg-white hover:bg-gray-100 text-gray-700 border-gray-200'
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Features Icon Color Picker */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
+                  <Palette className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>لون الأيقونة (صح / هدية / ميزة)</span>
+                </Label>
+                {featuresIconColor !== '#10b981' && (
+                  <button
+                    type="button"
+                    onClick={() => setFeaturesIconColor('#10b981')}
+                    className="text-[10px] text-gray-400 hover:text-red-500 flex items-center gap-0.5"
+                  >
+                    <RotateCcw className="w-2.5 h-2.5" />
+                    <span>تلقائي (أخضر زمردي)</span>
+                  </button>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={featuresIconColor || '#10b981'}
+                  onChange={e => setFeaturesIconColor(e.target.value)}
+                  className="w-9 h-9 rounded-lg border p-0.5 cursor-pointer bg-white shrink-0"
+                />
+                <Input
+                  value={featuresIconColor}
+                  onChange={e => setFeaturesIconColor(e.target.value)}
+                  placeholder="#10b981 (افتراضي)"
+                  className="h-9 text-xs font-mono uppercase bg-white"
+                />
+              </div>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {[
+                  { hex: '#10b981', name: 'أخضر زمردي' },
+                  { hex: '#2563eb', name: 'أزرق' },
+                  { hex: '#8b5cf6', name: 'بنفسجي' },
+                  { hex: '#f59e0b', name: 'ذهبي' },
+                  { hex: '#ef4444', name: 'أحمر' },
+                  { hex: '#0f172a', name: 'داكن' },
+                ].map(c => (
+                  <button
+                    key={c.hex}
+                    type="button"
+                    onClick={() => setFeaturesIconColor(c.hex)}
+                    className={`w-5 h-5 rounded-full border border-black/10 transition-transform ${
+                      featuresIconColor === c.hex ? 'scale-125 ring-2 ring-primary' : 'hover:scale-110'
+                    }`}
+                    style={{ backgroundColor: c.hex }}
+                    title={c.name}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* ── ITEMS LIST ROWS ── */}
+          <div className="space-y-2.5">
+            {featuresList.map((feature, index) => (
+              <div
+                key={feature.id}
+                className="flex items-center gap-2 p-2 rounded-xl border border-gray-200 bg-white hover:border-gray-300 transition-colors shadow-2xs"
+              >
+                <div className="w-6 text-center text-xs font-bold text-gray-400 shrink-0 select-none">
+                  #{index + 1}
+                </div>
+
+                {/* Icon Selector */}
+                <div className="shrink-0 flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-lg px-2 py-1">
+                  <OfferFeatureIcon
+                    icon={feature.icon || 'check-circle'}
+                    className="w-4 h-4"
+                    style={{ color: featuresIconColor || '#10b981' }}
+                  />
+                  <select
+                    value={feature.icon || 'check-circle'}
+                    onChange={e => handleUpdateFeature(feature.id, { icon: e.target.value })}
+                    className="text-xs bg-transparent border-0 font-medium text-gray-700 cursor-pointer focus:outline-none"
+                    dir="rtl"
+                  >
+                    {OFFER_FEATURE_ICONS.map(ic => (
+                      <option key={ic.id} value={ic.id}>
+                        {ic.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Item Text Input */}
+                <Input
+                  value={feature.text}
+                  onChange={e => handleUpdateFeature(feature.id, { text: e.target.value })}
+                  placeholder="مثال: عبوتين أصليتين 100 مل / فرشاة تنظيف مجانية / ضمان استرجاع 30 يوم"
+                  className="h-9 text-sm bg-white flex-1"
+                  dir="auto"
+                />
+
+                {/* Delete Button */}
+                <button
+                  type="button"
+                  onClick={() => handleRemoveFeature(feature.id)}
+                  className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors shrink-0"
+                  title="حذف هذا العنصر"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleAddFeature}
+              className="w-full py-2.5 rounded-xl border-dashed border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-emerald-700 hover:border-emerald-400 text-xs font-semibold gap-1.5 bg-white"
+            >
+              <Plus className="w-4 h-4" />
+              <span>إضافة سطر / عنصر جديد لقائمة العرض</span>
+            </Button>
+          </div>
+
+          {/* ── LIVE PREVIEW OF THIS OFFER'S LIST ── */}
+          <div className="p-4 rounded-xl border border-dashed border-emerald-200 bg-emerald-50/40 space-y-2">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-800">
+              <Eye className="w-3.5 h-3.5" />
+              <span>معاينة حية لشكل القائمة كما ستظهر للزائر على بطاقة العرض:</span>
+            </div>
+
+            <ul
+              className="space-y-1.5 pt-1"
+              style={{
+                fontSize: `${featuresSize}px`,
+                lineHeight: `${Math.round(featuresSize * 1.45)}px`,
+              }}
+            >
+              {featuresList.filter(f => f.text.trim().length > 0).length === 0 ? (
+                <li className="text-gray-400 italic text-xs">
+                  (ستظهر هنا قائمة المحتويات بمجرد كتابة العناصر أعلاه مع الأيقونات المختارة)
+                </li>
+              ) : (
+                featuresList
+                  .filter(f => f.text.trim().length > 0)
+                  .map((f, i) => (
+                    <li key={i} className="flex items-start text-gray-800 font-medium">
+                      <span className="ml-2 shrink-0 mt-0.5">
+                        <OfferFeatureIcon
+                          icon={f.icon || 'check-circle'}
+                          className="w-4 h-4"
+                          style={{ color: featuresIconColor || '#10b981' }}
+                        />
+                      </span>
+                      <span>{f.text}</span>
+                    </li>
+                  ))
+              )}
+            </ul>
+          </div>
+        </div>
+
         <div className="space-y-2">
-          <Label htmlFor="full_description">الوصف الكامل والمميزات (يمكن كتابة أسطر متعددة)</Label>
+          <Label htmlFor="full_description">ملاحظات أو شرح إضافي (اختياري)</Label>
           <textarea
             id="full_description"
             {...form.register('full_description')}
-            rows={4}
-            className="flex min-h-[90px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            rows={3}
+            placeholder="يمكنك كتابة أي ملاحظات إضافية هنا..."
+            className="flex min-h-[70px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           />
         </div>
 

@@ -15,7 +15,7 @@ import { ScrollToTopButton } from '@/components/landing/ScrollToTopButton'
 import { SectionHeading } from '@/components/landing/SectionHeading'
 import { CustomSection } from '@/components/landing/CustomSection'
 import { SectionConnector } from '@/components/landing/SectionConnector'
-import { parseSectionData } from '@/lib/section-config'
+import { parseSectionData, serializeSectionContent } from '@/lib/section-config'
 import Script from 'next/script'
 
 export const revalidate = 10 // Cache landing page for instant loading (revalidates every 10s)
@@ -237,84 +237,18 @@ export default async function LandingPage() {
 
           case 'product': {
             const parsedProduct = parseSectionData(section)
-            const contentText = parsedProduct.body || product?.description || ''
-            const isImageBelow = parsedProduct.imagePosition === 'below'
+            const productSection = {
+              ...section,
+              title: parsedProduct.title,
+              content: parsedProduct.body ? section.content : serializeSectionContent({
+                ...parsedProduct,
+                body: product?.description || '',
+              }),
+            }
             content = (
-              <section id="details" className={`py-8 sm:py-14 transition-colors ${isAlt ? 'bg-slate-50/80' : 'bg-white'}`}>
-                <div className="mx-auto max-w-5xl px-0 sm:px-6 lg:px-8">
-                  <div className="px-4 sm:px-0">
-                    <SectionHeading
-                      title={parsedProduct.title || product?.name || 'تفاصيل المنتج'}
-                      subtitle={parsedProduct.subtitle}
-                      icon={parsedProduct.icon}
-                      titleColor={parsedProduct.titleColor}
-                      fontSize={parsedProduct.fontSize}
-                      fontFamily={parsedProduct.fontFamily}
-                    />
-                  </div>
-                  {(contentText || parsedProduct.imageUrl) && (
-                    <div className="max-w-3xl mx-auto">
-                      {parsedProduct.imageUrl && contentText ? (
-                        <div className={`${isAlt ? 'bg-white' : 'bg-slate-50/70'} overflow-hidden rounded-none sm:rounded-3xl transition-colors flex flex-col shadow-none`}>
-                          {isImageBelow ? (
-                            <>
-                              <div className="p-5 sm:p-8">
-                                <div className="text-gray-700 whitespace-pre-line text-start leading-relaxed text-base sm:text-xl">
-                                  {contentText}
-                                </div>
-                              </div>
-                              <div className="w-full aspect-square bg-gray-100 overflow-hidden select-none">
-                                <img
-                                  src={parsedProduct.imageUrl}
-                                  alt={parsedProduct.title || 'Product Image'}
-                                  className="w-full h-full object-cover"
-                                  loading="lazy"
-                                  decoding="async"
-                                />
-                              </div>
-                            </>
-                          ) : (
-                            <>
-                              <div className="w-full aspect-square bg-gray-100 overflow-hidden select-none">
-                                <img
-                                  src={parsedProduct.imageUrl}
-                                  alt={parsedProduct.title || 'Product Image'}
-                                  className="w-full h-full object-cover"
-                                  loading="lazy"
-                                  decoding="async"
-                                />
-                              </div>
-                              <div className="p-5 sm:p-8">
-                                <div className="text-gray-700 whitespace-pre-line text-start leading-relaxed text-base sm:text-xl">
-                                  {contentText}
-                                </div>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      ) : parsedProduct.imageUrl ? (
-                        <div className="w-full aspect-square bg-gray-100 overflow-hidden rounded-none sm:rounded-3xl select-none">
-                          <img
-                            src={parsedProduct.imageUrl}
-                            alt={parsedProduct.title || 'Product Image'}
-                            className="w-full h-full object-cover"
-                            loading="lazy"
-                            decoding="async"
-                          />
-                        </div>
-                      ) : (
-                        <div className="px-4 sm:px-0">
-                          <div className={`${isAlt ? 'bg-white' : 'bg-slate-50/70'} p-5 sm:p-8 rounded-2xl sm:rounded-3xl transition-colors`}>
-                            <div className="text-gray-700 whitespace-pre-line text-start leading-relaxed text-base sm:text-xl">
-                              {contentText}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </section>
+              <div id="details">
+                <CustomSection section={productSection} isAlt={isAlt} />
+              </div>
             )
             break
           }
