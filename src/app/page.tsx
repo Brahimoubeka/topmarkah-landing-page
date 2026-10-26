@@ -71,71 +71,76 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function LandingPage() {
   const supabase = await createClient()
 
-  // Fetch all active landing sections ordered by display_order
-  const { data: sections } = await supabase
-    .from('landing_sections')
-    .select('*')
-    .eq('is_active', true)
-    .order('display_order', { ascending: true })
+  // Fetch all landing page data concurrently to eliminate waterfall delays
+  const [
+    { data: sections },
+    { data: products },
+    { data: offers },
+    { data: wilayas },
+    { data: testimonials },
+    { data: faqs },
+    { data: settings },
+    deliveryData,
+  ] = await Promise.all([
+    supabase
+      .from('landing_sections')
+      .select('*')
+      .eq('is_active', true)
+      .order('display_order', { ascending: true }),
+    supabase
+      .from('products')
+      .select('*, product_media(*)')
+      .eq('is_active', true)
+      .order('is_featured', { ascending: false })
+      .limit(1),
+    supabase
+      .from('offers')
+      .select('*')
+      .eq('is_active', true)
+      .order('display_order', { ascending: true })
+      .order('created_at', { ascending: true }),
+    supabase
+      .from('wilayas')
+      .select('*')
+      .eq('is_active', true)
+      .order('code', { ascending: true }),
+    supabase
+      .from('testimonials')
+      .select('*')
+      .eq('is_active', true)
+      .order('display_order', { ascending: true }),
+    supabase
+      .from('faqs')
+      .select('*')
+      .eq('is_active', true)
+      .order('display_order', { ascending: true }),
+    supabase
+      .from('site_settings')
+      .select('*')
+      .single(),
+    (async () => {
+      const { data: defaultCompany } = await supabase
+        .from('delivery_companies')
+        .select('id')
+        .eq('is_active', true)
+        .eq('is_default', true)
+        .single()
 
-  // Fetch featured product
-  const { data: products } = await supabase
-    .from('products')
-    .select('*, product_media(*)')
-    .eq('is_active', true)
-    .order('is_featured', { ascending: false })
-    .limit(1)
+      if (!defaultCompany?.id) return { defaultCompany: null, deliveryPrices: [] }
+
+      const { data: deliveryPrices } = await supabase
+        .from('delivery_prices')
+        .select('*')
+        .eq('is_active', true)
+        .eq('company_id', defaultCompany.id)
+
+      return { defaultCompany, deliveryPrices: deliveryPrices || [] }
+    })(),
+  ])
 
   const product = products?.[0]
-
-  // Fetch active offers
-  const { data: offers } = await supabase
-    .from('offers')
-    .select('*')
-    .eq('is_active', true)
-    .order('display_order', { ascending: true })
-    .order('created_at', { ascending: true })
-
-  // Fetch wilayas
-  const { data: wilayas } = await supabase
-    .from('wilayas')
-    .select('*')
-    .eq('is_active', true)
-    .order('code', { ascending: true })
-
-  // Fetch default company & delivery prices
-  const { data: defaultCompany } = await supabase
-    .from('delivery_companies')
-    .select('id')
-    .eq('is_active', true)
-    .eq('is_default', true)
-    .single()
-
-  const { data: deliveryPrices } = await supabase
-    .from('delivery_prices')
-    .select('*')
-    .eq('is_active', true)
-    .eq('company_id', defaultCompany?.id)
-
-  // Fetch testimonials
-  const { data: testimonials } = await supabase
-    .from('testimonials')
-    .select('*')
-    .eq('is_active', true)
-    .order('display_order', { ascending: true })
-
-  // Fetch FAQs
-  const { data: faqs } = await supabase
-    .from('faqs')
-    .select('*')
-    .eq('is_active', true)
-    .order('display_order', { ascending: true })
-
-  // Site settings
-  const { data: settings } = await supabase
-    .from('site_settings')
-    .select('*')
-    .single()
+  const defaultCompany = deliveryData.defaultCompany
+  const deliveryPrices = deliveryData.deliveryPrices
 
   // Build a map of section data by section_id for easy access
   const sectionMap = Object.fromEntries(
@@ -161,7 +166,7 @@ export default async function LandingPage() {
       } as React.CSSProperties}
     >
       {settings?.meta_pixel_id && (
-        <Script id="meta-pixel" strategy="afterInteractive">
+        <Script id="meta-pixel" strategy="lazyOnload">
           {`
             !function(f,b,e,v,n,t,s)
             {if(f.fbq)return;n=f.fbq=function(){n.callMethod?

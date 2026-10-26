@@ -77,7 +77,7 @@ function OfferImageSlideshow({ images, alt }: { images: string[]; alt: string })
                 i === current ? 'ring-2 ring-primary scale-105 shadow-sm border-transparent' : 'opacity-60 hover:opacity-100 border-gray-200'
               }`}
             >
-              <img src={src} alt={`Thumb ${i + 1}`} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+              <img src={src} alt={`Thumb ${i + 1}`} width={56} height={56} className="w-full h-full object-cover" loading="lazy" decoding="async" />
             </button>
           ))}
         </div>

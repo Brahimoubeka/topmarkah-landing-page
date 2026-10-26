@@ -2,6 +2,16 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function updateSession(request: NextRequest) {
+  const pathname = request.nextUrl.pathname
+  const isAdminRoute = pathname.startsWith('/admin')
+
+  // Fast-path for public visitors: do not execute remote auth roundtrip on landing page
+  if (!isAdminRoute) {
+    return NextResponse.next({
+      request,
+    })
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   })
@@ -35,9 +45,8 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const isAdminRoute = request.nextUrl.pathname.startsWith('/admin')
-  const isLoginRoute = request.nextUrl.pathname === '/admin/login'
-  const isResetPasswordRoute = request.nextUrl.pathname === '/admin/reset-password'
+  const isLoginRoute = pathname === '/admin/login'
+  const isResetPasswordRoute = pathname === '/admin/reset-password'
 
   if (isAdminRoute && !isLoginRoute && !isResetPasswordRoute && !user) {
     const url = request.nextUrl.clone()

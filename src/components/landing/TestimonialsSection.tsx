@@ -102,7 +102,7 @@ export function TestimonialsSection({ section, testimonials, isAlt = false }: an
                     }`}
                   >
                     {t.image_url ? (
-                      <img src={t.image_url} alt={`Thumb ${i + 1}`} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                      <img src={t.image_url} alt={`Thumb ${i + 1}`} width={60} height={60} className="w-full h-full object-cover" loading="lazy" decoding="async" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-gray-500">#{i + 1}</div>
                     )}

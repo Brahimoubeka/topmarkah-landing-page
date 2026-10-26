@@ -111,6 +111,7 @@ function ImageSlideshow({ images, aspectRatio = '4:3' }: { images: string[]; asp
           alt={`Product ${current + 1}`}
           className={`w-full ${isAuto ? 'h-auto max-h-[85vh] object-contain' : 'h-full object-cover'} transition-opacity duration-300`}
           fetchPriority="high"
+          loading="eager"
           decoding="async"
         />
         {images.length > 1 && (
@@ -233,7 +234,7 @@ export function HeroSection({ section, product, isAlt = false }: any) {
       }`}
       style={parsed.backgroundColor ? { backgroundColor: parsed.backgroundColor } : undefined}
     >
-      <div className="absolute inset-0 bg-[url('https://transparenttextures.com/patterns/cubes.png')] opacity-20 mix-blend-multiply pointer-events-none"></div>
+      <div className="absolute inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:16px_16px] opacity-40 pointer-events-none"></div>
       <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-primary/10 opacity-50 blur-3xl pointer-events-none"></div>
       <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-secondary/10 opacity-50 blur-3xl pointer-events-none"></div>
 
@@ -286,6 +287,8 @@ export function HeroSection({ section, product, isAlt = false }: any) {
                           : 'h-full object-cover'
                       }`}
                       fetchPriority="high"
+                      loading="eager"
+                      decoding="async"
                     />
                   </div>
                 ) : !customVideoUrl && !youtubeEntry ? (

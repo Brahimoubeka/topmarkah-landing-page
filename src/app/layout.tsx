@@ -5,36 +5,38 @@ import "./globals.css";
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
 };
 
 const cairo = Cairo({
   subsets: ["arabic", "latin"],
-  weight: ["400", "600", "700", "800", "900"],
+  weight: ["400", "600", "700", "800"],
   variable: "--font-cairo",
   display: "swap",
+  preload: true,
 });
 
 const tajawal = Tajawal({
   subsets: ["arabic", "latin"],
-  weight: ["400", "500", "700", "800", "900"],
+  weight: ["400", "700"],
   variable: "--font-tajawal",
   display: "swap",
+  preload: false,
 });
 
 const almarai = Almarai({
   subsets: ["arabic"],
-  weight: ["400", "700", "800"],
+  weight: ["400", "700"],
   variable: "--font-almarai",
   display: "swap",
+  preload: false,
 });
 
 const readex = Readex_Pro({
   subsets: ["arabic", "latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "600", "700"],
   variable: "--font-readex",
   display: "swap",
+  preload: false,
 });
 
 const amiri = Amiri({
@@ -42,6 +44,7 @@ const amiri = Amiri({
   weight: ["400", "700"],
   variable: "--font-amiri",
   display: "swap",
+  preload: false,
 });
 
 import { createClient } from "@/lib/supabase/server";
@@ -82,6 +85,10 @@ export default function RootLayout({
       dir="rtl"
       className={`${cairo.variable} ${tajawal.variable} ${almarai.variable} ${readex.variable} ${amiri.variable} ${cairo.className} scroll-smooth`}
     >
+      <head>
+        <link rel="preconnect" href="https://aikbpjspogpsxufixrsn.supabase.co" crossOrigin="" />
+        <link rel="dns-prefetch" href="https://aikbpjspogpsxufixrsn.supabase.co" />
+      </head>
       <body className="antialiased selection:bg-primary/20">{children}</body>
     </html>
   );

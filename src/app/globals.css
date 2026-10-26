@@ -62,17 +62,25 @@ body {
 @keyframes title-glow {
   0%, 100% {
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-    filter: drop-shadow(0 0 1px transparent);
   }
   50% {
-    text-shadow: 0 0 16px rgba(37, 99, 235, 0.3), 0 0 28px rgba(59, 130, 246, 0.18);
-    filter: drop-shadow(0 2px 8px rgba(37, 99, 235, 0.25));
+    text-shadow: 0 0 14px rgba(37, 99, 235, 0.32), 0 0 24px rgba(59, 130, 246, 0.18);
   }
 }
 
 .glow-title {
   animation: title-glow 3.5s ease-in-out infinite;
-  transition: all 0.3s ease;
+  transition: color 0.3s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glow-title,
+  .glow-price,
+  .glow-button,
+  .glow-badge,
+  .animate-marquee {
+    animation: none !important;
+  }
 }
 
 @keyframes price-glow {
