@@ -108,7 +108,7 @@ function ImageSlideshow({
   return (
     <div className="relative select-none w-full">
       <div
-        className={`group relative w-full bg-gray-900 overflow-hidden rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100/60 ${
+        className={`group relative w-full bg-gray-900 overflow-hidden rounded-none sm:rounded-3xl shadow-xl sm:border border-gray-100/60 ${
           isAuto ? 'aspect-auto' : ''
         }`}
         style={!isAuto && aspectStyle ? { aspectRatio: aspectStyle } : !isAuto ? { aspectRatio: '4 / 3' } : undefined}
@@ -285,9 +285,9 @@ export function HeroSection({ section, product, isAlt = false }: any) {
       <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-primary/10 opacity-50 blur-3xl pointer-events-none"></div>
       <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-secondary/10 opacity-50 blur-3xl pointer-events-none"></div>
 
-      <div className="relative mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
+      <div className="relative mx-auto max-w-4xl px-0 sm:px-6 lg:px-8 text-center">
         {/* ── 1. TEXT ON TOP: TITLE & PRICE ── */}
-        <div className="mb-4 sm:mb-6">
+        <div className="mb-4 sm:mb-6 px-4 sm:px-0">
           {heroTitle && (
             <h1
               className={`font-black tracking-tight leading-tight inline-flex items-center gap-2.5 justify-center ${
@@ -324,7 +324,7 @@ export function HeroSection({ section, product, isAlt = false }: any) {
         </div>
 
         {/* ── 2. PRODUCT IMAGE UNDER THE TEXT WITH COLORED FADING LIGHT & OVERLAID BUTTONS ── */}
-        <div className="relative mx-auto w-full max-w-2xl">
+        <div className="relative mx-auto w-full max-w-2xl px-0">
           <div className="hidden sm:block absolute top-0 -inset-4 bg-gradient-to-r from-primary/15 to-secondary/15 rounded-[3rem] blur-2xl opacity-75"></div>
           <div className="relative space-y-4">
             {/* 1. Custom Video or direct MP4 */}
@@ -355,7 +355,7 @@ export function HeroSection({ section, product, isAlt = false }: any) {
               />
             ) : allImages.length === 1 ? (
               <div
-                className="group relative w-full bg-gray-900 overflow-hidden rounded-2xl sm:rounded-3xl shadow-xl border border-gray-100/60"
+                className="group relative w-full bg-gray-900 overflow-hidden rounded-none sm:rounded-3xl shadow-xl sm:border border-gray-100/60"
                 style={
                   parsed.imageAspectRatio && parsed.imageAspectRatio !== 'auto'
                     ? { aspectRatio: getAspectRatioStyle(parsed.imageAspectRatio) }
@@ -391,8 +391,8 @@ export function HeroSection({ section, product, isAlt = false }: any) {
                 </div>
               </div>
             ) : !customVideoUrl && !youtubeEntry ? (
-              <div className="rounded-2xl sm:rounded-3xl bg-gray-100 p-2 overflow-hidden shadow-sm">
-                <div className="aspect-[4/3] rounded-xl sm:rounded-2xl bg-gray-200 flex items-center justify-center text-gray-400 overflow-hidden relative">
+              <div className="rounded-none sm:rounded-3xl bg-gray-100 p-2 overflow-hidden shadow-sm">
+                <div className="aspect-[4/3] rounded-none sm:rounded-2xl bg-gray-200 flex items-center justify-center text-gray-400 overflow-hidden relative">
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5"></div>
                   <span className="z-10 flex flex-col items-center">
                     <Package className="w-16 h-16 mb-4 text-blue-300" />
@@ -406,7 +406,7 @@ export function HeroSection({ section, product, isAlt = false }: any) {
 
         {/* ── 3. TRUST BADGES UNDER THE IMAGE ── */}
         {hasAnyBadge && (
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3 sm:gap-6 max-w-xl mx-auto">
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3 sm:gap-6 max-w-xl mx-auto px-4 sm:px-0">
             {badge1 && badge1.trim() && (
               <div className="flex items-center text-xs sm:text-sm font-semibold text-gray-700 bg-white/80 backdrop-blur-sm px-3.5 py-1.5 rounded-full border border-gray-200/60 shadow-sm">
                 <Truck className="ml-1.5 h-4 w-4 sm:h-5 sm:w-5 text-secondary shrink-0" />

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { ShoppingCart } from 'lucide-react'
 
 export function StickyOrderButton() {
   const [isVisible, setIsVisible] = useState(true)
@@ -38,14 +39,15 @@ export function StickyOrderButton() {
 
   return (
     <div 
-      className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 ${
+      className={`fixed bottom-5 left-1/2 -translate-x-1/2 z-50 transition-all duration-500 ${
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20 pointer-events-none'
       }`}
     >
       <a 
         href="#order-form" 
-        className="flex items-center justify-center px-10 py-4 bg-gradient-to-r from-emerald-500 to-green-600 text-white font-bold text-lg rounded-full shadow-[0_0_20px_rgba(16,185,129,0.5)] hover:shadow-[0_0_30px_rgba(16,185,129,0.7)] hover:scale-105 transition-all duration-300 animate-bounce group"
+        className="flex items-center justify-center gap-2 px-6 sm:px-7 py-2.5 sm:py-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white font-extrabold text-sm sm:text-base rounded-full hover:scale-105 active:scale-95 transition-all duration-300 animate-wave-glow group"
       >
+        <ShoppingCart className="w-4 h-4 sm:w-4.5 sm:h-4.5 shrink-0" />
         <span>اطلب الآن</span>
       </a>
     </div>
