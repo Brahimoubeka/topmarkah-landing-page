@@ -90,12 +90,14 @@ function ImageSlideshow({
   images,
   aspectRatio = 'auto',
   topOverlay,
+  middleOverlay,
   bottomOverlay,
   imageFit = 'cover',
 }: {
   images: string[]
   aspectRatio?: string
   topOverlay?: React.ReactNode
+  middleOverlay?: React.ReactNode
   bottomOverlay?: React.ReactNode
   imageFit?: 'cover' | 'contain'
 }) {
@@ -133,24 +135,31 @@ function ImageSlideshow({
           decoding="async"
         />
 
-        {/* ── TOP FLOATING HEADER: LOGO & TOPMARKAH PHRASE ── */}
-        {topOverlay}
+        {/* ── TOP GRADIENT SHADE ── */}
+        <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-black/80 via-black/25 to-transparent pointer-events-none" />
 
-        {/* ── COLORED FADING LIGHT / HOVER EFFECT COMING FROM BOTTOM TO TOP ── */}
-        <div className="absolute inset-x-0 bottom-0 h-4/5 sm:h-3/4 bg-gradient-to-t from-gray-950 via-gray-950/80 via-55% to-transparent pointer-events-none transition-opacity duration-300">
-          {/* Ambient colored light beam rising from the bottom */}
+        {/* ── SMOOTH FADING DARK FROM BOTTOM UP THROUGH THE TITLE & DESCRIPTION ── */}
+        <div className="absolute inset-x-0 bottom-0 h-4/5 sm:h-3/4 bg-gradient-to-t from-gray-950 via-gray-950/75 via-45% to-transparent pointer-events-none transition-opacity duration-300">
           <div
             className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-4/5 h-40 rounded-full blur-3xl opacity-75 group-hover:opacity-95 transition-opacity duration-500 pointer-events-none"
             style={{ backgroundColor: 'var(--primary-color, #2563eb)' }}
           />
         </div>
 
-        {/* ── BOTTOM OVERLAY: TITLE, PRICE, DESCRIPTION & ORDER BUTTON ── */}
-        {bottomOverlay && (
-          <div className="absolute inset-x-0 bottom-0 z-20 p-4 sm:p-7 flex flex-col justify-end items-center text-center">
+        {/* ── UNIFIED VERTICAL OVERLAY: TOP (LOGO) + MIDDLE (TITLE & DESC) + BOTTOM (ORDER BUTTON) ── */}
+        <div className="absolute inset-0 z-20 flex flex-col justify-between p-3.5 sm:p-6 pointer-events-none">
+          <div className="w-full pointer-events-auto">
+            {topOverlay}
+          </div>
+
+          <div className="my-auto w-full pointer-events-auto flex items-center justify-center py-2">
+            {middleOverlay}
+          </div>
+
+          <div className="w-full pointer-events-auto flex justify-center items-center pb-2 sm:pb-3">
             {bottomOverlay}
           </div>
-        )}
+        </div>
 
         {images.length > 1 && (
           <>
@@ -269,7 +278,7 @@ export function HeroSection({ section, product, isAlt = false, logoUrl }: any) {
 
   // Top floating overlay: Logo & topmarkah phrase
   const renderTopOverlay = () => (
-    <div className="absolute top-0 inset-x-0 z-30 flex items-center justify-between px-4 sm:px-6 py-2.5 sm:py-3.5 bg-gradient-to-b from-black/75 via-black/35 to-transparent pointer-events-auto">
+    <div className="relative flex items-center justify-between w-full px-1 sm:px-2 py-0.5 pointer-events-auto">
       {/* Logo */}
       <div className="flex items-center">
         {logoUrl ? (
@@ -290,9 +299,9 @@ export function HeroSection({ section, product, isAlt = false, logoUrl }: any) {
     </div>
   )
 
-  // Bottom overlay content: Title, Price, Description, Order Now button
-  const renderBottomOverlay = () => (
-    <div className="w-full max-w-xl mx-auto flex flex-col items-center">
+  // Middle overlay: Title, Price & Description smoothly over the image (no sharp box)
+  const renderMiddleOverlay = () => (
+    <div className="w-full max-w-xl mx-auto flex flex-col items-center px-4 py-2 text-center">
       {/* Product Title */}
       {heroTitle && (
         <h1
@@ -314,7 +323,7 @@ export function HeroSection({ section, product, isAlt = false, logoUrl }: any) {
 
       {/* Price display directly under the title */}
       {product && product.price > 0 && (
-        <div className="flex items-baseline gap-2 justify-center mb-2">
+        <div className="flex items-baseline gap-2 justify-center mb-1.5 sm:mb-2">
           <span className="text-2xl sm:text-4xl font-black text-amber-400 glow-price">
             {product.price}
           </span>
@@ -330,27 +339,30 @@ export function HeroSection({ section, product, isAlt = false, logoUrl }: any) {
       {/* Description with dynamic font size */}
       {heroDescription && (
         <p
-          className="text-white/95 font-medium mb-3.5 sm:mb-4.5 drop-shadow text-center whitespace-pre-line leading-relaxed max-w-xl mx-auto line-clamp-3"
+          className="text-white/95 font-medium drop-shadow text-center whitespace-pre-line leading-relaxed max-w-lg mx-auto line-clamp-3"
           style={pStyle}
         >
           {heroDescription}
         </p>
       )}
-
-      {/* Action button: Order Now only */}
-      {ctaButtonText && (
-        <a
-          href="#order-form"
-          className="glow-button relative overflow-hidden inline-flex items-center justify-center px-8 sm:px-11 py-3 sm:py-3.5 text-base sm:text-lg font-black rounded-full text-white bg-primary hover:brightness-110 transition-all hover:scale-105 shadow-2xl active:scale-95 after:absolute after:inset-0 after:-translate-x-full after:animate-[shimmer_3s_infinite] after:bg-gradient-to-r after:from-transparent after:via-white/30 after:to-transparent"
-        >
-          {ctaButtonText}
-        </a>
-      )}
     </div>
+  )
+
+  // Bottom overlay: Order Now button only
+  const renderBottomButton = () => (
+    ctaButtonText ? (
+      <a
+        href="#order-form"
+        className="glow-button relative overflow-hidden inline-flex items-center justify-center px-8 sm:px-11 py-3 sm:py-3.5 text-base sm:text-lg font-black rounded-full text-white bg-primary hover:brightness-110 transition-all hover:scale-105 shadow-2xl active:scale-95 after:absolute after:inset-0 after:-translate-x-full after:animate-[shimmer_3s_infinite] after:bg-gradient-to-r after:from-transparent after:via-white/30 after:to-transparent"
+      >
+        {ctaButtonText}
+      </a>
+    ) : null
   )
 
   return (
     <section
+      id="hero-section"
       className={`relative overflow-hidden pt-0 pb-6 sm:pb-10 transition-colors ${
         !parsed.backgroundColor ? (isAlt ? 'bg-slate-50/75' : 'bg-white') : ''
       }`}
@@ -391,7 +403,8 @@ export function HeroSection({ section, product, isAlt = false, logoUrl }: any) {
                 aspectRatio={parsed.imageAspectRatio || 'auto'}
                 imageFit={parsed.imageFit}
                 topOverlay={renderTopOverlay()}
-                bottomOverlay={renderBottomOverlay()}
+                middleOverlay={renderMiddleOverlay()}
+                bottomOverlay={renderBottomButton()}
               />
             ) : allImages.length === 1 ? (
               (() => {
@@ -420,20 +433,30 @@ export function HeroSection({ section, product, isAlt = false, logoUrl }: any) {
                       decoding="async"
                     />
 
-                    {/* ── TOP FLOATING HEADER: LOGO & TOPMARKAH PHRASE ── */}
-                    {renderTopOverlay()}
+                    {/* ── TOP GRADIENT SHADE ── */}
+                    <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-black/80 via-black/25 to-transparent pointer-events-none" />
 
-                    {/* ── COLORED FADING LIGHT / HOVER EFFECT FROM BOTTOM TO TOP ── */}
-                    <div className="absolute inset-x-0 bottom-0 h-4/5 sm:h-3/4 bg-gradient-to-t from-gray-950 via-gray-950/80 via-55% to-transparent pointer-events-none transition-opacity duration-300">
+                    {/* ── SMOOTH FADING DARK FROM BOTTOM UP THROUGH THE TITLE & DESCRIPTION ── */}
+                    <div className="absolute inset-x-0 bottom-0 h-4/5 sm:h-3/4 bg-gradient-to-t from-gray-950 via-gray-950/75 via-45% to-transparent pointer-events-none transition-opacity duration-300">
                       <div
                         className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-4/5 h-40 rounded-full blur-3xl opacity-75 group-hover:opacity-95 transition-opacity duration-500 pointer-events-none"
                         style={{ backgroundColor: 'var(--primary-color, #2563eb)' }}
                       />
                     </div>
 
-                    {/* ── BOTTOM OVERLAY: TITLE, PRICE, DESCRIPTION & ORDER BUTTON ── */}
-                    <div className="absolute inset-x-0 bottom-0 z-20 p-4 sm:p-7 flex flex-col justify-end items-center text-center">
-                      {renderBottomOverlay()}
+                    {/* ── UNIFIED VERTICAL OVERLAY: TOP (LOGO) + MIDDLE (TITLE & DESC) + BOTTOM (ORDER BUTTON) ── */}
+                    <div className="absolute inset-0 z-20 flex flex-col justify-between p-3.5 sm:p-6 pointer-events-none">
+                      <div className="w-full pointer-events-auto">
+                        {renderTopOverlay()}
+                      </div>
+
+                      <div className="my-auto w-full pointer-events-auto flex items-center justify-center py-2">
+                        {renderMiddleOverlay()}
+                      </div>
+
+                      <div className="w-full pointer-events-auto flex justify-center items-center pb-2 sm:pb-3">
+                        {renderBottomButton()}
+                      </div>
                     </div>
                   </div>
                 )

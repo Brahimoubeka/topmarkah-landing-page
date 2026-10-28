@@ -4,36 +4,54 @@ import { useState, useEffect } from 'react'
 import { ShoppingCart } from 'lucide-react'
 
 export function StickyOrderButton() {
-  const [isVisible, setIsVisible] = useState(true)
+  const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
+    let heroInView = true
+    let orderInView = false
+
+    const updateVisibility = () => {
+      // Visible only when user has scrolled past hero section AND not inside order-form
+      setIsVisible(!heroInView && !orderInView)
+    }
+
+    const heroSection = document.getElementById('hero-section')
+    const orderSection = document.getElementById('order-form')
+
+    if (!heroSection) {
+      const handleScroll = () => {
+        setIsVisible(window.scrollY > 450 && !orderInView)
+      }
+      window.addEventListener('scroll', handleScroll, { passive: true })
+      return () => window.removeEventListener('scroll', handleScroll)
+    }
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          // If the order form is visible, hide the button
-          if (entry.isIntersecting) {
-            setIsVisible(false)
-          } else {
-            setIsVisible(true)
+          if (entry.target === heroSection) {
+            heroInView = entry.isIntersecting
+          } else if (entry.target === orderSection) {
+            orderInView = entry.isIntersecting
           }
         })
+        updateVisibility()
       },
       { 
-        // Trigger when at least 10% of the order form is in view
-        threshold: 0.1,
-        // Also trigger slightly before it enters if needed, but threshold 0.1 is fine 
+        threshold: 0.05,
       }
     )
 
-    const orderSection = document.getElementById('order-form')
+    observer.observe(heroSection)
     if (orderSection) {
       observer.observe(orderSection)
     }
 
+    // Initial check
+    updateVisibility()
+
     return () => {
-      if (orderSection) {
-        observer.unobserve(orderSection)
-      }
+      observer.disconnect()
     }
   }, [])
 
