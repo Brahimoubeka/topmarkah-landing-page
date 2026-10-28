@@ -20,7 +20,7 @@ import {
   Video,
 } from 'lucide-react'
 
-export type ImageAspectRatio = '1:1' | '9:16' | '16:9' | '3:4' | '4:5' | 'auto'
+export type ImageAspectRatio = 'auto' | '1:1' | '9:16' | '16:9' | '4:3' | '3:4' | '4:5'
 
 export interface SectionStyleConfig {
   title: string
@@ -99,12 +99,13 @@ export const ARABIC_FONTS = [
 ]
 
 export const ASPECT_RATIO_OPTIONS: { id: ImageAspectRatio; label: string; ratio: string; description: string }[] = [
+  { id: 'auto', label: 'أبعاد الصورة الأصلية (Auto)', ratio: 'auto', description: 'تظهر الصورة كما رُفعت بدون أي قص أو إجبار (1:1, 9:16, 16:9...)' },
   { id: '1:1', label: '1:1 مربع', ratio: '1 / 1', description: 'مناسب لصور المنتجات المربعة' },
   { id: '9:16', label: '9:16 ستوري / ريلز', ratio: '9 / 16', description: 'عمودي شاشة كاملة (مثل تيك توك وستوري)' },
   { id: '16:9', label: '16:9 عرضي شاشة', ratio: '16 / 9', description: 'عرضي كلاسيكي عريض للفيديو والصور الأفقية' },
+  { id: '4:3', label: '4:3 قياسي', ratio: '4 / 3', description: 'أبعاد الصور الفوتوغرافية القياسية' },
   { id: '3:4', label: '3:4 عمودي قياسي', ratio: '3 / 4', description: 'عمودي كلاسيكي متوازن' },
   { id: '4:5', label: '4:5 إنستغرام', ratio: '4 / 5', description: 'عمودي بنسبة منشورات الإنستغرام المثالية' },
-  { id: 'auto', label: 'الأبعاد الأصلية للصورة', ratio: 'auto', description: 'تظهر الصورة كما هي بدون أي قص أو إجبار' },
 ]
 
 export const TITLE_FONT_PRESETS = [
@@ -240,6 +241,8 @@ export function getAspectRatioStyle(ratio?: string): string | undefined {
       return '9 / 16'
     case '16:9':
       return '16 / 9'
+    case '4:3':
+      return '4 / 3'
     case '3:4':
       return '3 / 4'
     case '4:5':
@@ -259,6 +262,8 @@ export function getAspectRatioClass(ratio?: string): string {
       return 'aspect-[9/16]'
     case '16:9':
       return 'aspect-[16/9]'
+    case '4:3':
+      return 'aspect-[4/3]'
     case '3:4':
       return 'aspect-[3/4]'
     case '4:5':
@@ -266,7 +271,7 @@ export function getAspectRatioClass(ratio?: string): string {
     case 'auto':
       return 'aspect-auto'
     default:
-      return 'aspect-square'
+      return 'aspect-auto'
   }
 }
 
@@ -284,7 +289,7 @@ export function parseSectionData(section: any): SectionStyleConfig {
   let fontFamily = 'cairo'
   let hideTitle = false
   let imageUrl = section?.image_url || ''
-  let imageAspectRatio: ImageAspectRatio = '1:1'
+  let imageAspectRatio: ImageAspectRatio = 'auto'
   let imagePosition: 'above' | 'below' = 'above'
   let imageFit: 'cover' | 'contain' = 'cover'
   let videoUrl = ''
@@ -532,7 +537,7 @@ export function serializeSectionContent(params: {
     fontFamily: params.fontFamily || 'cairo',
     hideTitle: !!params.hideTitle,
     imageUrl: params.imageUrl || '',
-    imageAspectRatio: params.imageAspectRatio || '1:1',
+    imageAspectRatio: params.imageAspectRatio || 'auto',
     imagePosition: params.imagePosition || 'above',
     imageFit: params.imageFit || 'cover',
     videoUrl: params.videoUrl || '',

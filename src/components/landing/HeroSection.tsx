@@ -88,12 +88,16 @@ function DirectVideoPlayer({
 
 function ImageSlideshow({
   images,
-  aspectRatio = '4:3',
-  overlay,
+  aspectRatio = 'auto',
+  topOverlay,
+  bottomOverlay,
+  imageFit = 'cover',
 }: {
   images: string[]
   aspectRatio?: string
-  overlay?: React.ReactNode
+  topOverlay?: React.ReactNode
+  bottomOverlay?: React.ReactNode
+  imageFit?: 'cover' | 'contain'
 }) {
   const [current, setCurrent] = useState(0)
 
@@ -102,8 +106,8 @@ function ImageSlideshow({
   const prev = () => setCurrent(i => (i - 1 + images.length) % images.length)
   const next = () => setCurrent(i => (i + 1) % images.length)
 
-  const aspectStyle = getAspectRatioStyle(aspectRatio)
-  const isAuto = aspectRatio === 'auto'
+  const isAuto = !aspectRatio || aspectRatio === 'auto'
+  const aspectStyle = !isAuto ? getAspectRatioStyle(aspectRatio) : undefined
 
   return (
     <div className="relative select-none w-full">
@@ -111,31 +115,40 @@ function ImageSlideshow({
         className={`group relative w-full bg-gray-900 overflow-hidden rounded-none sm:rounded-3xl shadow-xl sm:border border-gray-100/60 ${
           isAuto ? 'aspect-auto' : ''
         }`}
-        style={!isAuto && aspectStyle ? { aspectRatio: aspectStyle } : !isAuto ? { aspectRatio: '4 / 3' } : undefined}
+        style={aspectStyle ? { aspectRatio: aspectStyle } : undefined}
       >
         <img
           key={current}
           src={images[current]}
           alt={`Product ${current + 1}`}
-          className={`w-full ${isAuto ? 'h-auto max-h-[85vh] object-contain' : 'h-full object-cover'} transition-all duration-500 group-hover:scale-[1.02]`}
+          className={`w-full ${
+            isAuto
+              ? 'h-auto block'
+              : imageFit === 'contain'
+              ? 'h-full object-contain'
+              : 'h-full object-cover'
+          } transition-all duration-500 group-hover:scale-[1.01]`}
           fetchPriority="high"
           loading="eager"
           decoding="async"
         />
 
+        {/* ── TOP FLOATING HEADER: LOGO & TOPMARKAH PHRASE ── */}
+        {topOverlay}
+
         {/* ── COLORED FADING LIGHT / HOVER EFFECT COMING FROM BOTTOM TO TOP ── */}
-        <div className="absolute inset-x-0 bottom-0 h-4/5 sm:h-2/3 bg-gradient-to-t from-gray-950 via-gray-950/70 via-50% to-transparent pointer-events-none transition-opacity duration-300">
+        <div className="absolute inset-x-0 bottom-0 h-4/5 sm:h-3/4 bg-gradient-to-t from-gray-950 via-gray-950/80 via-55% to-transparent pointer-events-none transition-opacity duration-300">
           {/* Ambient colored light beam rising from the bottom */}
           <div
-            className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-4/5 h-36 rounded-full blur-3xl opacity-75 group-hover:opacity-95 transition-opacity duration-500 pointer-events-none"
+            className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-4/5 h-40 rounded-full blur-3xl opacity-75 group-hover:opacity-95 transition-opacity duration-500 pointer-events-none"
             style={{ backgroundColor: 'var(--primary-color, #2563eb)' }}
           />
         </div>
 
-        {/* ── OVERLAY: BUTTONS & SMALL DESCRIPTION ABOVE HOVER & IMAGE ── */}
-        {overlay && (
-          <div className="absolute inset-x-0 bottom-0 z-20 p-4 sm:p-6 flex flex-col justify-end items-center text-center">
-            {overlay}
+        {/* ── BOTTOM OVERLAY: TITLE, PRICE, DESCRIPTION & ORDER BUTTON ── */}
+        {bottomOverlay && (
+          <div className="absolute inset-x-0 bottom-0 z-20 p-4 sm:p-7 flex flex-col justify-end items-center text-center">
+            {bottomOverlay}
           </div>
         )}
 
@@ -155,12 +168,10 @@ function ImageSlideshow({
             >
               <ChevronRight className="w-5 h-5 text-white" />
             </button>
+            <div className="absolute top-14 right-3 bg-black/65 text-white text-xs font-semibold px-3 py-1 rounded-full backdrop-blur-md z-30 shadow-sm">
+              {current + 1} / {images.length}
+            </div>
           </>
-        )}
-        {images.length > 1 && (
-          <div className="absolute top-3 right-3 bg-black/65 text-white text-xs font-semibold px-3 py-1 rounded-full backdrop-blur-md z-30 shadow-sm">
-            {current + 1} / {images.length}
-          </div>
         )}
       </div>
 
@@ -193,14 +204,14 @@ function ImageSlideshow({
   )
 }
 
-export function HeroSection({ section, product, isAlt = false }: any) {
+export function HeroSection({ section, product, isAlt = false, logoUrl }: any) {
   const parsed = parseSectionData(section)
   const fontClass = getFontClass(parsed.fontFamily)
 
   // Title styling
   const titleStyle: React.CSSProperties = {}
   if (parsed.titleColor) titleStyle.color = parsed.titleColor
-  else titleStyle.color = '#0f172a'
+  else titleStyle.color = '#ffffff'
 
   if (parsed.titleFontSize) {
     const num = typeof parsed.titleFontSize === 'number' ? parsed.titleFontSize : parseFloat(String(parsed.titleFontSize))
@@ -208,6 +219,21 @@ export function HeroSection({ section, product, isAlt = false }: any) {
       titleStyle.fontSize = `${num}px`
       titleStyle.lineHeight = `${Math.round(num * 1.2)}px`
     }
+  }
+
+  // Paragraph styling with full dynamic font size support
+  const paragraphNum = typeof parsed.paragraphFontSize === 'number'
+    ? parsed.paragraphFontSize
+    : parseFloat(String(parsed.paragraphFontSize || 15))
+  const pFontSize = !isNaN(paragraphNum) && paragraphNum > 0 ? `${paragraphNum}px` : '15px'
+  const pLineHeight = !isNaN(paragraphNum) && paragraphNum > 0 ? `${Math.round(paragraphNum * 1.5)}px` : '22px'
+
+  const pStyle: React.CSSProperties = {
+    fontSize: pFontSize,
+    lineHeight: pLineHeight,
+  }
+  if (parsed.textColor) {
+    pStyle.color = parsed.textColor
   }
 
   // Media
@@ -229,9 +255,8 @@ export function HeroSection({ section, product, isAlt = false }: any) {
 
   const hasMedia = customVideoUrl || youtubeEntry || allImages.length > 0
 
-  // Custom Badges & Buttons
+  // Custom Badges & Buttons (only Order Now, See Details button removed)
   const ctaButtonText = parsed.ctaButtonText || 'اطلب الآن'
-  const ctaSecondaryText = parsed.ctaSecondaryText !== undefined ? parsed.ctaSecondaryText : 'مزيد من التفاصيل'
 
   const badge1 = parsed.badge1 !== undefined ? parsed.badge1 : 'توصيل سريع'
   const badge2 = parsed.badge2 !== undefined ? parsed.badge2 : 'جودة مضمونة'
@@ -242,41 +267,91 @@ export function HeroSection({ section, product, isAlt = false }: any) {
   const heroTitle = parsed.hideTitle ? null : (parsed.title || product?.name)
   const heroDescription = parsed.body || parsed.subtitle
 
-  // Overlay content positioned above the light hover and image
-  const renderOverlayContent = () => (
+  // Top floating overlay: Logo & topmarkah phrase
+  const renderTopOverlay = () => (
+    <div className="absolute top-0 inset-x-0 z-30 flex items-center justify-between px-4 sm:px-6 py-2.5 sm:py-3.5 bg-gradient-to-b from-black/75 via-black/35 to-transparent pointer-events-auto">
+      {/* Logo */}
+      <div className="flex items-center">
+        {logoUrl ? (
+          <img src={logoUrl} alt="Logo" className="h-8 sm:h-11 w-auto object-contain drop-shadow-md" />
+        ) : (
+          <div className="h-8 w-8 sm:h-10 sm:w-10 bg-white/15 backdrop-blur-md rounded-xl flex items-center justify-center text-[10px] sm:text-xs font-bold text-white border border-white/25 shadow-sm">
+            شعار
+          </div>
+        )}
+      </div>
+
+      {/* Top Center: topmarkah phrase */}
+      <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2">
+        <span className="text-white/95 font-medium text-xs sm:text-sm tracking-[0.2em] uppercase bg-black/40 backdrop-blur-md px-3.5 py-1 rounded-full border border-white/20 shadow-sm">
+          topmarkah
+        </span>
+      </div>
+    </div>
+  )
+
+  // Bottom overlay content: Title, Price, Description, Order Now button
+  const renderBottomOverlay = () => (
     <div className="w-full max-w-xl mx-auto flex flex-col items-center">
-      {/* Small description */}
+      {/* Product Title */}
+      {heroTitle && (
+        <h1
+          className={`font-black tracking-tight leading-tight inline-flex items-center gap-2 justify-center drop-shadow-md mb-1.5 ${
+            !titleStyle.fontSize ? 'text-2xl sm:text-4xl' : ''
+          } ${fontClass} glow-title`}
+          style={titleStyle}
+        >
+          {parsed.icon && parsed.icon !== 'none' && (
+            <span
+              className="inline-flex items-center justify-center p-1 rounded-lg bg-white/10 text-white shrink-0"
+            >
+              <SectionIcon name={parsed.icon} className="w-5 h-5 sm:w-6 sm:h-6" />
+            </span>
+          )}
+          <span>{heroTitle}</span>
+        </h1>
+      )}
+
+      {/* Price display directly under the title */}
+      {product && product.price > 0 && (
+        <div className="flex items-baseline gap-2 justify-center mb-2">
+          <span className="text-2xl sm:text-4xl font-black text-amber-400 glow-price">
+            {product.price}
+          </span>
+          <span className="text-xs sm:text-sm font-bold text-gray-300">DA</span>
+          {product.old_price > 0 && (
+            <span className="text-xs sm:text-sm font-bold text-red-400 line-through decoration-red-400/80 mr-1.5">
+              {product.old_price} DA
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Description with dynamic font size */}
       {heroDescription && (
-        <p className="text-white/95 text-xs sm:text-sm sm:leading-relaxed font-medium mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-3 drop-shadow text-center">
+        <p
+          className="text-white/95 font-medium mb-3.5 sm:mb-4.5 drop-shadow text-center whitespace-pre-line leading-relaxed max-w-xl mx-auto line-clamp-3"
+          style={pStyle}
+        >
           {heroDescription}
         </p>
       )}
 
-      {/* Action buttons sitting above the hover and image */}
-      <div className="flex flex-row flex-wrap gap-2.5 sm:gap-3.5 justify-center items-center w-full">
-        {ctaButtonText && (
-          <a
-            href="#order-form"
-            className="glow-button relative overflow-hidden inline-flex items-center justify-center px-6 sm:px-9 py-2.5 sm:py-3.5 text-sm sm:text-base font-black rounded-full text-white bg-primary hover:brightness-110 transition-all hover:scale-105 shadow-xl after:absolute after:inset-0 after:-translate-x-full after:animate-[shimmer_3s_infinite] after:bg-gradient-to-r after:from-transparent after:via-white/30 after:to-transparent"
-          >
-            {ctaButtonText}
-          </a>
-        )}
-        {ctaSecondaryText && (
-          <a
-            href="#details"
-            className="inline-flex items-center justify-center px-5 sm:px-7 py-2.5 sm:py-3.5 text-sm sm:text-base font-bold rounded-full text-white bg-white/20 hover:bg-white/30 border border-white/30 backdrop-blur-md transition-all hover:scale-105 shadow-md"
-          >
-            {ctaSecondaryText}
-          </a>
-        )}
-      </div>
+      {/* Action button: Order Now only */}
+      {ctaButtonText && (
+        <a
+          href="#order-form"
+          className="glow-button relative overflow-hidden inline-flex items-center justify-center px-8 sm:px-11 py-3 sm:py-3.5 text-base sm:text-lg font-black rounded-full text-white bg-primary hover:brightness-110 transition-all hover:scale-105 shadow-2xl active:scale-95 after:absolute after:inset-0 after:-translate-x-full after:animate-[shimmer_3s_infinite] after:bg-gradient-to-r after:from-transparent after:via-white/30 after:to-transparent"
+        >
+          {ctaButtonText}
+        </a>
+      )}
     </div>
   )
 
   return (
     <section
-      className={`relative overflow-hidden pt-3 pb-8 sm:pt-8 sm:pb-12 transition-colors ${
+      className={`relative overflow-hidden pt-0 pb-6 sm:pb-10 transition-colors ${
         !parsed.backgroundColor ? (isAlt ? 'bg-slate-50/75' : 'bg-white') : ''
       }`}
       style={parsed.backgroundColor ? { backgroundColor: parsed.backgroundColor } : undefined}
@@ -286,44 +361,7 @@ export function HeroSection({ section, product, isAlt = false }: any) {
       <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-secondary/10 opacity-50 blur-3xl pointer-events-none"></div>
 
       <div className="relative mx-auto max-w-4xl px-0 sm:px-6 lg:px-8 text-center">
-        {/* ── 1. TEXT ON TOP: TITLE & PRICE ── */}
-        <div className="mb-4 sm:mb-6 px-4 sm:px-0">
-          {heroTitle && (
-            <h1
-              className={`font-black tracking-tight leading-tight inline-flex items-center gap-2.5 justify-center ${
-                !titleStyle.fontSize ? parsed.fontSize : ''
-              } ${fontClass} glow-title`}
-              style={titleStyle}
-            >
-              {parsed.icon && parsed.icon !== 'none' && (
-                <span
-                  className="inline-flex items-center justify-center p-1.5 rounded-xl bg-primary/10 text-primary shrink-0"
-                  style={parsed.titleColor ? { color: parsed.titleColor, backgroundColor: `${parsed.titleColor}15` } : {}}
-                >
-                  <SectionIcon name={parsed.icon} className="w-6 h-6 sm:w-7 sm:h-7" />
-                </span>
-              )}
-              <span>{heroTitle}</span>
-            </h1>
-          )}
-
-          {/* Price display directly under the title */}
-          {product && product.price > 0 && (
-            <div className="mt-2.5 flex items-baseline gap-2.5 justify-center">
-              <span className="text-3xl sm:text-5xl font-black text-primary glow-price">
-                {product.price}
-              </span>
-              <span className="text-base sm:text-lg font-bold text-gray-500">DA</span>
-              {product.old_price > 0 && (
-                <span className="text-base sm:text-lg font-bold text-red-500 line-through decoration-red-500/80 mr-2">
-                  {product.old_price} DA
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* ── 2. PRODUCT IMAGE UNDER THE TEXT WITH COLORED FADING LIGHT & OVERLAID BUTTONS ── */}
+        {/* ── PRODUCT MEDIA STARTING RIGHT UNDER THE RED ROLLING BUNDLE ── */}
         <div className="relative mx-auto w-full max-w-2xl px-0">
           <div className="hidden sm:block absolute top-0 -inset-4 bg-gradient-to-r from-primary/15 to-secondary/15 rounded-[3rem] blur-2xl opacity-75"></div>
           <div className="relative space-y-4">
@@ -346,50 +384,60 @@ export function HeroSection({ section, product, isAlt = false }: any) {
               <YouTubeEmbed url={youtubeEntry.media_url} />
             )}
 
-            {/* 3. Image slideshow or single image with colored light hover & overlaid buttons */}
+            {/* 3. Image slideshow or single image with floating header & bottom overlay */}
             {allImages.length > 1 ? (
               <ImageSlideshow
                 images={allImages}
-                aspectRatio={parsed.imageAspectRatio || '4:3'}
-                overlay={renderOverlayContent()}
+                aspectRatio={parsed.imageAspectRatio || 'auto'}
+                imageFit={parsed.imageFit}
+                topOverlay={renderTopOverlay()}
+                bottomOverlay={renderBottomOverlay()}
               />
             ) : allImages.length === 1 ? (
-              <div
-                className="group relative w-full bg-gray-900 overflow-hidden rounded-none sm:rounded-3xl shadow-xl sm:border border-gray-100/60"
-                style={
-                  parsed.imageAspectRatio && parsed.imageAspectRatio !== 'auto'
-                    ? { aspectRatio: getAspectRatioStyle(parsed.imageAspectRatio) }
-                    : { aspectRatio: '4 / 3' }
-                }
-              >
-                <img
-                  src={allImages[0]}
-                  alt="Hero Image"
-                  className={`w-full ${
-                    parsed.imageAspectRatio === 'auto'
-                      ? 'h-auto max-h-[85vh] object-contain'
-                      : parsed.imageFit === 'contain'
-                      ? 'h-full object-contain'
-                      : 'h-full object-cover'
-                  } transition-all duration-500 group-hover:scale-[1.02]`}
-                  fetchPriority="high"
-                  loading="eager"
-                  decoding="async"
-                />
+              (() => {
+                const isAuto = !parsed.imageAspectRatio || parsed.imageAspectRatio === 'auto'
+                const aspectStyle = !isAuto ? getAspectRatioStyle(parsed.imageAspectRatio) : undefined
 
-                {/* ── COLORED FADING LIGHT / HOVER EFFECT FROM BOTTOM TO TOP ── */}
-                <div className="absolute inset-x-0 bottom-0 h-4/5 sm:h-2/3 bg-gradient-to-t from-gray-950 via-gray-950/70 via-50% to-transparent pointer-events-none transition-opacity duration-300">
+                return (
                   <div
-                    className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-4/5 h-36 rounded-full blur-3xl opacity-75 group-hover:opacity-95 transition-opacity duration-500 pointer-events-none"
-                    style={{ backgroundColor: 'var(--primary-color, #2563eb)' }}
-                  />
-                </div>
+                    className={`group relative w-full bg-gray-900 overflow-hidden rounded-none sm:rounded-3xl shadow-xl sm:border border-gray-100/60 ${
+                      isAuto ? 'aspect-auto' : ''
+                    }`}
+                    style={aspectStyle ? { aspectRatio: aspectStyle } : undefined}
+                  >
+                    <img
+                      src={allImages[0]}
+                      alt="Hero Image"
+                      className={`w-full ${
+                        isAuto
+                          ? 'h-auto block'
+                          : parsed.imageFit === 'contain'
+                          ? 'h-full object-contain'
+                          : 'h-full object-cover'
+                      } transition-all duration-500 group-hover:scale-[1.01]`}
+                      fetchPriority="high"
+                      loading="eager"
+                      decoding="async"
+                    />
 
-                {/* ── OVERLAY: BUTTONS & SMALL DESCRIPTION ABOVE HOVER & IMAGE ── */}
-                <div className="absolute inset-x-0 bottom-0 z-20 p-4 sm:p-6 flex flex-col justify-end items-center text-center">
-                  {renderOverlayContent()}
-                </div>
-              </div>
+                    {/* ── TOP FLOATING HEADER: LOGO & TOPMARKAH PHRASE ── */}
+                    {renderTopOverlay()}
+
+                    {/* ── COLORED FADING LIGHT / HOVER EFFECT FROM BOTTOM TO TOP ── */}
+                    <div className="absolute inset-x-0 bottom-0 h-4/5 sm:h-3/4 bg-gradient-to-t from-gray-950 via-gray-950/80 via-55% to-transparent pointer-events-none transition-opacity duration-300">
+                      <div
+                        className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-4/5 h-40 rounded-full blur-3xl opacity-75 group-hover:opacity-95 transition-opacity duration-500 pointer-events-none"
+                        style={{ backgroundColor: 'var(--primary-color, #2563eb)' }}
+                      />
+                    </div>
+
+                    {/* ── BOTTOM OVERLAY: TITLE, PRICE, DESCRIPTION & ORDER BUTTON ── */}
+                    <div className="absolute inset-x-0 bottom-0 z-20 p-4 sm:p-7 flex flex-col justify-end items-center text-center">
+                      {renderBottomOverlay()}
+                    </div>
+                  </div>
+                )
+              })()
             ) : !customVideoUrl && !youtubeEntry ? (
               <div className="rounded-none sm:rounded-3xl bg-gray-100 p-2 overflow-hidden shadow-sm">
                 <div className="aspect-[4/3] rounded-none sm:rounded-2xl bg-gray-200 flex items-center justify-center text-gray-400 overflow-hidden relative">
@@ -404,9 +452,9 @@ export function HeroSection({ section, product, isAlt = false }: any) {
           </div>
         </div>
 
-        {/* ── 3. TRUST BADGES UNDER THE IMAGE ── */}
+        {/* ── TRUST BADGES UNDER THE IMAGE ── */}
         {hasAnyBadge && (
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3 sm:gap-6 max-w-xl mx-auto px-4 sm:px-0">
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-3 sm:gap-6 max-w-xl mx-auto px-4 sm:px-0">
             {badge1 && badge1.trim() && (
               <div className="flex items-center text-xs sm:text-sm font-semibold text-gray-700 bg-white/80 backdrop-blur-sm px-3.5 py-1.5 rounded-full border border-gray-200/60 shadow-sm">
                 <Truck className="ml-1.5 h-4 w-4 sm:h-5 sm:w-5 text-secondary shrink-0" />

@@ -133,7 +133,7 @@ export function SectionConfigEditor({
 
   // Media: Image
   const [imageUrl, setImageUrl] = useState(parsed.imageUrl || '')
-  const [imageAspectRatio, setImageAspectRatio] = useState<ImageAspectRatio>(parsed.imageAspectRatio || '1:1')
+  const [imageAspectRatio, setImageAspectRatio] = useState<ImageAspectRatio>(parsed.imageAspectRatio || 'auto')
   const [imagePosition, setImagePosition] = useState<'above' | 'below'>(parsed.imagePosition || 'above')
   const [imageFit, setImageFit] = useState<'cover' | 'contain'>(parsed.imageFit || 'cover')
   const [uploadingImage, setUploadingImage] = useState(false)
@@ -216,7 +216,7 @@ export function SectionConfigEditor({
     setBackgroundColor(updated.backgroundColor || '')
 
     setImageUrl(updated.imageUrl || '')
-    setImageAspectRatio(updated.imageAspectRatio || '1:1')
+    setImageAspectRatio(updated.imageAspectRatio || 'auto')
     setImagePosition(updated.imagePosition || 'above')
     setImageFit(updated.imageFit || 'cover')
 
@@ -821,7 +821,7 @@ export function SectionConfigEditor({
           <Label className="text-xs font-semibold text-gray-700">
             اختر أبعاد الصورة (Image Dimensions / Aspect Ratio):
           </Label>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
             {ASPECT_RATIO_OPTIONS.map(opt => {
               const isSelected = imageAspectRatio === opt.id
               return (

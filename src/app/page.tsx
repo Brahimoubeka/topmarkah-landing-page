@@ -206,7 +206,8 @@ export default async function LandingPage() {
         </div>
       )}
 
-      <Header logoUrl={settings?.logo_url} />
+      {/* Header is integrated directly into Hero when hero is active; fallback if disabled */}
+      {!isActive('hero') && <Header logoUrl={settings?.logo_url} />}
 
       {/* ── DYNAMIC SECTIONS IN DISPLAY ORDER ── */}
       {sections?.map((section, index) => {
@@ -221,6 +222,7 @@ export default async function LandingPage() {
                 section={section}
                 product={product}
                 isAlt={isAlt}
+                logoUrl={settings?.logo_url}
               />
             )
             break
